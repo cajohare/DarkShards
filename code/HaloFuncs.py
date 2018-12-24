@@ -33,7 +33,7 @@ def Nesc_Triaxial(sigr,sigphi,beta,v_esc):
 
 #==============================================================================#
 # Velocity distributions
-def VelocityDist_Isotropic(v,v_lab,v0=233.0,v_esc=580.0):
+def VelocityDist_Isotropic(v,v_lab,v0=233.0,v_esc=528.0):
     sig = v0/sqrt(2.0)
     N_esc = Nesc_Isotropic(sig,v_esc)
     vr = v[:,0]
@@ -46,7 +46,7 @@ def VelocityDist_Isotropic(v,v_lab,v0=233.0,v_esc=580.0):
                 +(vphi+v_lab[1])**2.0))/(2*sig**2.0))*(V<v_esc)
     return fv3
 
-def VelocityDist_Triaxial(v,v_lab,beta=0.9,v0=233.0,v_esc=580.0):
+def VelocityDist_Triaxial(v,v_lab,beta=0.9,v0=233.0,v_esc=528.0):
     sigr = sqrt(3*v0**2.0/(2.0*(3-2.0*beta)))
     sigphi = sqrt(3*v0**2.0*(1-beta)/(2.0*(3-2.0*beta)))
     sigz = sigphi
@@ -61,6 +61,7 @@ def VelocityDist_Triaxial(v,v_lab,beta=0.9,v0=233.0,v_esc=580.0):
                -((vz+v_lab[2])**2.0/(2*sigz**2.0))\
                -((vphi+v_lab[1])**2.0/(2*sigphi**2.0)))*(V<v_esc)
     return fv3
+
 #==============================================================================#
 
 
@@ -69,7 +70,7 @@ def VelocityDist_Triaxial(v,v_lab,beta=0.9,v0=233.0,v_esc=580.0):
 
 #==============================================================================#
 # Speed distributions
-def SpeedDist_Isotropic(v,v_lab,v0=233.0,v_esc=580.0):
+def SpeedDist_Isotropic(v,v_lab,v0=233.0,v_esc=528.0):
     v_e = sqrt(sum(v_lab**2.0))
     sig = v0/sqrt(2.0)
     N_esc = Nesc_Isotropic(sig,v_esc)
@@ -80,10 +81,10 @@ def SpeedDist_Isotropic(v,v_lab,v0=233.0,v_esc=580.0):
     return fv1
 
 
-def SpeedDist_Triaxial(v,v_lab,beta=0.9,v0=233.0,v_esc=580.0):
-    sigr = sqrt(3*v0**2.0/(2.0*(3-2.0*beta)))
-    sigphi = sqrt(3*v0**2.0*(1-beta)/(2.0*(3-2.0*beta)))
-    sigz = sigphi
+def SpeedDist_Triaxial(v,v_lab,beta=0.9,v0=233.0,v_esc=528.0):
+    sigr=sqrt(3*v0**2.0/(2.0*(3-2.0*beta)))
+    sigphi=sqrt(3*v0**2.0*(1-beta)/(2.0*(3-2.0*beta)))
+    sigz=sqrt(3*v0**2.0*(1-beta)/(2.0*(3-2.0*beta)))
     N_esc = Nesc_Triaxial(sigr,sigphi,beta,v_esc)
     N = 1.0/((2*pi)**(1.5)*sigr*sigphi*sigz*N_esc)
     n = size(v)
@@ -105,15 +106,40 @@ def SpeedDist_Triaxial(v,v_lab,beta=0.9,v0=233.0,v_esc=580.0):
                    -((vphi+v_lab[1])**2.0/(2*sigphi**2.0)))*(V<(v_esc))
         fv1[i] = (v1**2.0)*trapz(trapz(F,phivals,axis=1),costhvals)
     return fv1
-#==============================================================================#
 
+def SpeedDist_3D(v,v_lab,sig3,v0=233.0,v_esc=528.0):
+    sigr = sig3[0]
+    sigphi = sig3[1]
+    sigz = sig3[2]
+    beta = 1.0-(sigr**2.0+sigz**2.0)/(2*sigr**2.0)
+    #N_esc = Nesc_Triaxial(sigr,sigphi,beta,v_esc)
+    N_esc = 1.0
+    N = 1.0/((2*pi)**(1.5)*sigr*sigphi*sigz*N_esc)
+    n = size(v)
+    fv1 = zeros(shape=n)
+    
+    nf = 300
+    costhvals = linspace(-1,1,nf)
+    phivals = linspace(0,2*pi,nf)
+    C,P = meshgrid(costhvals,phivals)
+    for i in range(0,n):
+        v1 = v[i]
+        vr = v1*sqrt(1-C**2.0)*cos(P)
+        vphi = v1*sqrt(1-C**2.0)*sin(P)
+        vz = v1*C
+        V = sqrt((vr+v_lab[0])**2.0+(vphi+v_lab[1])**2.0+(vz+v_lab[2])**2.0)
 
+        F  = N*exp(-((vr+v_lab[0])**2.0/(2*sigr**2.0))\
+                   -((vz+v_lab[2])**2.0/(2*sigz**2.0))\
+                   -((vphi+v_lab[1])**2.0/(2*sigphi**2.0)))*(V<(v_esc))
+        fv1[i] = (v1**2.0)*trapz(trapz(F,phivals,axis=1),costhvals)
+    return fv1
 
 
 
 #==============================================================================#
 # Halo integrals
-def gvmin_Isotropic(v_min,v_lab,v0=233.0,v_esc=580.0):
+def gvmin_Isotropic(v_min,v_lab,v0=233.0,v_esc=528.0):
     # Mean inverse speed
     N_esc = Nesc_Isotropic(v0/sqrt(2.0),v_esc)
     v_e = sqrt(sum(v_lab**2.0))
@@ -134,7 +160,7 @@ def gvmin_Isotropic(v_min,v_lab,v0=233.0,v_esc=580.0):
     
     
     
-def fhat_Isotropic(v_min,x,v_lab,v0=233.0,v_esc=580.0):
+def fhat_Isotropic(v_min,x,v_lab,v0=233.0,v_esc=528.0):
     # Radon transform
     sig_v = v0/sqrt(2.0)
     N_esc = Nesc_Isotropic(sig_v,v_esc)

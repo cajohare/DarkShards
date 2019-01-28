@@ -34,7 +34,7 @@ def MinimumWIMPSpeed(E_r,A,m_chi):
     v_min = (sqrt(2.0*m_N_keV*E_r)/(2.0*mu_N_keV))*3.0e8/1000.0 # vmin in km/s
     return v_min
 
-def MaxWIMPEnergy(A,v_e,m_chi):
+def MaxWIMPEnergy(A,v_lab,m_chi,v_esc):
     m_N = m_p*A
     mu_N = 1.0e6*m_N*m_chi/(1.0e6*m_chi+m_N)
     E_max_lim = 2.0*mu_N*mu_N*2.0*((v_esc+sqrt(sum(v_lab**2.0)))*1000.0/3.0e8)**2.0/m_N

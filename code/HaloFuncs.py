@@ -159,6 +159,10 @@ def gvmin_Isotropic(v_min,v_lab,v0=233.0,v_esc=528.0):
     return gvmin
     
     
+def gvmin_Triaxial(v_min,v_lab,beta=0.9,v0=233.0,v_esc=528.0):    
+    fv = SpeedDist_Triaxial(v_min,v_lab,beta=beta,v0=v0,v_esc=v_esc)
+    gvmin = cumtrapz(fv,v)
+    return gvmin
     
 def fhat_Isotropic(v_min,x,v_lab,v0=233.0,v_esc=528.0):
     # Radon transform

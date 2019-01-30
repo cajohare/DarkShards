@@ -43,7 +43,7 @@ def VelocityDist_Isotropic(v,v_lab,v0=233.0,v_esc=528.0):
     fv3  = (1.0/(N_esc*sqrt(2*pi)*sig**3.0)*\
           exp(-((vr+v_lab[0])**2.0\
                 +(vz+v_lab[2])**2.0\
-                +(vphi+v_lab[1])**2.0))/(2*sig**2.0))*(V<v_esc)
+                +(vphi+v_lab[1])**2.0)/(2*sig**2.0)))*(V<v_esc)
     return fv3
 
 def VelocityDist_Triaxial(v,v_lab,beta=0.9,v0=233.0,v_esc=528.0):
@@ -62,6 +62,21 @@ def VelocityDist_Triaxial(v,v_lab,beta=0.9,v0=233.0,v_esc=528.0):
                -((vphi+v_lab[1])**2.0/(2*sigphi**2.0)))*(V<v_esc)
     return fv3
 
+def VelocityDist_3D(v,v_lab,sig3,v0=233.0,v_esc=528.0):
+    sigr = sig3[0]
+    sigphi = sig3[1]
+    sigz = sig3[2]
+    N_esc = 1.0
+    N = 1.0/((2*pi)**(1.5)*sigr*sigphi*sigz*N_esc)
+    
+    vr = v[:,0]
+    vphi = v[:,1]
+    vz = v[:,2]
+    V = sqrt((vr+v_lab[0])**2.0+(vphi+v_lab[1])**2.0+(vz+v_lab[2])**2.0)
+    fv3  = N*exp(-((vr+v_lab[0])**2.0/(2*sigr**2.0))\
+               -((vz+v_lab[2])**2.0/(2*sigz**2.0))\
+               -((vphi+v_lab[1])**2.0/(2*sigphi**2.0)))*(V<v_esc)
+    return fv3
 #==============================================================================#
 
 

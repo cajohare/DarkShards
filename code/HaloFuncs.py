@@ -1,5 +1,6 @@
 from numpy import pi, sqrt, exp, zeros, size, shape, linspace, meshgrid, cos, sin
 from numpy import trapz
+from scipy.integrate import cumtrapz
 from numpy.linalg import norm
 from scipy.special import erf, erfi
 import LabFuncs

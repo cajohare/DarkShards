@@ -182,6 +182,9 @@ def FormFactorHelm(E_r,A):
 
 
 #==============================Lab Velocity====================================#
+# Peculiar velocity
+v_pec = array([11.1,12.2,7.3])
+
 # Earth orbital params
 vv_earthrev = 29.8
 eccentricity = 0.016722
@@ -189,10 +192,21 @@ eccentricity_deg = 0.9574
 orb_long_ecliptic = 13.0+1.0
 lat_ecl_gal = np.array([-5.5303,59.575,29.812])
 long_ecl_gal = np.array([266.141,-13.3485,179.3212])
+e1 = array([0.9941,0.1088,0.0042])
+e2 = array([-0.0504,0.4946,-0.8677])
+w_p = 2*pi/365
+t1 = 79
+ve = 29.79
+vrot = 0.47
+
 
 # Other constants
 AstronomicalUnit = 1.49597892e11 # Astronomical Unit
 EarthRadius = 6371.01*1000.0 # Earth Radius
+Msun = 2.0e30 # Solar mass (kg)
+bigG = 6.67e-11*(1.0e3)**(-3)
+
+
 #------------------------------------------------------------------------------#
 def LabVelocity(JD, Loc, HaloModel):
 
@@ -200,7 +214,6 @@ def LabVelocity(JD, Loc, HaloModel):
     lon = Loc.Longitude
 
     v_LSR = HaloModel.RotationSpeed
-    v_pec = HaloModel.PeculiarVelocity
 
     # Convert day into phase of Earth rotation t_lab
     UT = 24*(JD+0.5-floor(JD+0.5)) #Universal time
@@ -253,17 +266,54 @@ def JulianDay(month, day, year, hour): # Calculates time in JD for a given date
                 + floor(year_r/400.0) - 32045 + (hour-12.0)/24.0
     return JulianDay
 
-def LabVelocitySimple(day, HaloModel):
-    vsun = array([0.0,HaloModel.RotationSpeed,0.0])
-    vsun += HaloModel.PeculiarVelocity
-    ve = 29.79
-    vrot = 0.47
-    w = 2*pi/365
-    t1 = 79
-    e1 = array([0.9941,0.1088,0.0042])
-    e2 = array([-0.0504,0.4946,-0.8677])
-    v_lab = vsun + ve*(e1*cos(w*(day-t1)) + e2*sin(w*(day-t1)))
+def LabVelocitySimple(day,v_LSR=233.0,v_shift=array([0.0,0.0,0.0])):
+    vsun = array([0.0,v_LSR,0.0])+v_pec-v_shift
+    v_lab = vsun + EarthVelocity(day)
     return v_lab
+
+def EarthVelocity(day):
+    return vv_earthrev*(e1*cos(w_p*(day-t1)) + e2*sin(w_p*(day-t1)))
+    
+def EarthVector(day):
+    a_earth = AstronomicalUnit/1.0e3
+    tp = 3
+    lamb = 102*pi/180
+    g = w_p*(day-tp)
+    nu = g + 2.*eccentricity*sin(g)*(5.0/4.0)+eccentricity**2.0*sin(2*g)
+    r = a_earth*(1-eccentricity**2.0)/(1+eccentricity*cos(nu))
+
+    T1 = w_p*(day-t1)
+    T2 = lamb + nu
+    r_earth = r*(-sin(T2)*e1 + cos(T2)*e2)
+    return r_earth
+
+def GravFocusAngles(vv,costh,phi,day,sig=164.75,v_LSR=233.0,v_shift=array([0.0,0.0,0.0])):
+    v1 = vv*sqrt(1.0-costh**2.0)*cos(phi)
+    v2 = vv*sqrt(1.0-costh**2.0)*sin(phi)
+    v3 = vv*costh
+
+    v0 = sqrt(2.0)*sig
+    
+    vsun = array([0.0,v_LSR,0.0])+v_pec-v_shift
+    vearth = EarthVelocity(day)
+    rearth = EarthVector(day)
+    r = sqrt(sum(rearth**2.0))
+    xearth = rearth/r
+    
+    vsum1 = v1+vearth[0]
+    vsum2 = v2+vearth[1]
+    vsum3 = v3+vearth[2]
+    normvsum = sqrt(vsum1**2 + vsum2**2 + vsum3**2)
+    xsum1 = vsum1/normvsum
+    xsum2 = vsum2/normvsum
+    xsum3 = vsum3/normvsum
+    rx = 1.0-(xearth[0]*xsum1 + xearth[1]*xsum2 + xearth[2]*xsum3)
+    vrx = (v1+vearth[0]+vsun[0])*(xearth[0]-xsum1)\
+            +(v2+vearth[1]+vsun[1])*(xearth[1]-xsum2)\
+            +(v3+vearth[2]+vsun[2])*(xearth[2]-xsum3)
+
+    J = (-2*bigG*Msun/(r*v0**2.0*vv))*(vrx/rx)
+    return J
 
 #==========================Solar direction=====================================#
 def EarthSunDistance(JD): # Earth-sun distance at Julian Day (JD)

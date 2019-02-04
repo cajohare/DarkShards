@@ -1,5 +1,5 @@
 from numpy import pi, sqrt, exp, zeros, size, shape, linspace, meshgrid, cos, sin
-from numpy import trapz, arange, array, flipud
+from numpy import trapz, arange, array, flipud, interp
 from scipy.integrate import cumtrapz
 from numpy.linalg import norm
 from scipy.special import erf, erfi
@@ -87,7 +87,7 @@ def VelocityDist_3D(v,v_lab,sig3,v0=233.0,v_esc=528.0):
 # Speed distributions
 def SpeedDist_Isotropic(v,day,v_LSR=233.0,sig=164.75,v_esc=528.0,\
                         v_shift=array([0.0,0.0,0.0]),GravFocus=False):
-    v_lab = LabFuncs.LabVelocitySimple(day,v_LSR=v_LSR,v_shift=v_shift)
+    v_lab = LabFuncs.LabVelocitySimple(day,v_LSR=v_LSR)-v_shift
     v_e = sqrt(sum(v_lab**2.0))
     v0 = sig*sqrt(2.0)
     N_esc = Nesc_Isotropic(sig,v_esc)
@@ -119,38 +119,26 @@ def SpeedDist_Isotropic(v,day,v_LSR=233.0,sig=164.75,v_esc=528.0,\
     return fv1
 
 
-def SpeedDist_Triaxial(v,v_lab,beta=0.9,v0=233.0,v_esc=528.0):
-    sigr=sqrt(3*v0**2.0/(2.0*(3-2.0*beta)))
-    sigphi=sqrt(3*v0**2.0*(1-beta)/(2.0*(3-2.0*beta)))
-    sigz=sqrt(3*v0**2.0*(1-beta)/(2.0*(3-2.0*beta)))
-    N_esc = Nesc_Triaxial(sigr,sigphi,beta,v_esc)
-    N = 1.0/((2*pi)**(1.5)*sigr*sigphi*sigz*N_esc)
-    n = size(v)
-    fv1 = zeros(shape=n)
-    
-    nf = 300
-    costhvals = linspace(-1,1,nf)
-    phivals = linspace(0,2*pi,nf)
-    C,P = meshgrid(costhvals,phivals)
-    for i in range(0,n):
-        v1 = v[i]
-        vr = v1*sqrt(1-C**2.0)*cos(P)
-        vphi = v1*sqrt(1-C**2.0)*sin(P)
-        vz = v1*C
-        V = sqrt((vr+v_lab[0])**2.0+(vphi+v_lab[1])**2.0+(vz+v_lab[2])**2.0)
 
-        F  = N*exp(-((vr+v_lab[0])**2.0/(2*sigr**2.0))\
-                   -((vz+v_lab[2])**2.0/(2*sigz**2.0))\
-                   -((vphi+v_lab[1])**2.0/(2*sigphi**2.0)))*(V<(v_esc))
-        fv1[i] = (v1**2.0)*trapz(trapz(F,phivals,axis=1),costhvals)
-    return fv1
-
-def SpeedDist_3D(v,v_lab,sig3,v0=233.0,v_esc=528.0):
+def SpeedDist_3D(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
+                        v_shift=array([0.0,0.0,0.0]),GravFocus=False):
+   
+    #sigr=sqrt(3*v0**2.0/(2.0*(3-2.0*beta)))
+    #sigphi=sqrt(3*v0**2.0*(1-beta)/(2.0*(3-2.0*beta)))
+    #sigz=sqrt(3*v0**2.0*(1-beta)/(2.0*(3-2.0*beta)))
     sigr = sig3[0]
     sigphi = sig3[1]
     sigz = sig3[2]
-    beta = 1.0-(sigr**2.0+sigz**2.0)/(2*sigr**2.0)
-    #N_esc = Nesc_Triaxial(sigr,sigphi,beta,v_esc)
+
+    beta = 1.0-(sigphi**2.0+sigz**2.0)/(2*sigr**2.0)
+    if beta>0.0:
+        N_esc = Nesc_Triaxial(sigr,sigphi,beta,v_esc)
+    else:
+        N_esc = 1.0
+    
+    v_e = LabFuncs.LabVelocitySimple(day,v_LSR=v_LSR)
+    vv_e = sqrt(sum(v_e**2.0))
+
     N_esc = 1.0
     N = 1.0/((2*pi)**(1.5)*sigr*sigphi*sigz*N_esc)
     n = size(v)
@@ -160,18 +148,42 @@ def SpeedDist_3D(v,v_lab,sig3,v0=233.0,v_esc=528.0):
     costhvals = linspace(-1,1,nf)
     phivals = linspace(0,2*pi,nf)
     C,P = meshgrid(costhvals,phivals)
-    for i in range(0,n):
-        v1 = v[i]
-        vr = v1*sqrt(1-C**2.0)*cos(P)
-        vphi = v1*sqrt(1-C**2.0)*sin(P)
-        vz = v1*C
-        V = sqrt((vr+v_lab[0])**2.0+(vphi+v_lab[1])**2.0+(vz+v_lab[2])**2.0)
+    if GravFocus==False:
+        v_off = v_e-v_shift
+        
+        for i in range(0,n):
+            v1 = v[i]
+            vr = v1*sqrt(1-C**2.0)*cos(P)+v_off[0]
+            vphi = v1*sqrt(1-C**2.0)*sin(P)+v_off[1]
+            vz = v1*C+v_off[2]
+            V = sqrt(vr**2.0+vphi**2.0+vz**2.0)
 
-        F  = N*exp(-((vr+v_lab[0])**2.0/(2*sigr**2.0))\
-                   -((vz+v_lab[2])**2.0/(2*sigz**2.0))\
-                   -((vphi+v_lab[1])**2.0/(2*sigphi**2.0)))*(V<(v_esc))
-        fv1[i] = (v1**2.0)*trapz(trapz(F,phivals,axis=1),costhvals)
+            F  = N*exp(-(vr**2.0/(2*sigr**2.0))\
+                       -(vz**2.0/(2*sigz**2.0))\
+                       -(vphi**2.0/(2*sigphi**2.0)))*(V<(v_esc+vv_e))
+            fv1[i] = (v1**2.0)*trapz(trapz(F,phivals,axis=1),costhvals)
+    else:
+        
+        v_off = LabFuncs.v_pec+array([0.0,v_LSR,0.0])-v_shift
+
+        for i in range(0,n):
+            v1 = v[i]
+            vr,vphi,vz = LabFuncs.v_infinity(v1,C,P,day)
+
+            vr += v_off[0]
+            vphi += v_off[1]
+            vz += v_off[2]
+            V = sqrt(vr**2.0+vphi**2.0+vz**2.0)
+            F  = N*exp(-(vr**2.0/(2*sigr**2.0))\
+                       -(vz**2.0/(2*sigz**2.0))\
+                       -(vphi**2.0/(2*sigphi**2.0)))*(V<(v_esc+vv_e))
+            fv1[i] = (v1**2.0)*trapz(trapz(F,phivals,axis=1),costhvals)
+            
+    fv1[v>(v_esc+vv_e)] = 0.0
     return fv1
+
+
+
 
 
 
@@ -182,15 +194,15 @@ def gvmin_Isotropic(v_min,day,v_LSR=233.0,sig=164.75,v_esc=528.0,\
    
     if GravFocus:
         v_min_fine = linspace(0.0001,800.0,300)
-        fv = flipud((1.0/v_min)*SpeedDist_Isotropic(v_min_fine,day,v_LSR=v_LSR,sig=sig,\
+        fv = flipud((1.0/v_min_fine)*SpeedDist_Isotropic(v_min_fine,day,v_LSR=v_LSR,sig=sig,\
                                  v_esc=v_esc,v_shift=v_shift,GravFocus=True))
-        gvmin_fine = zeros(shape=size(v_min))
-        gvmin_fine[0:-1] = flipud(cumtrapz(fv,v_min))
+        gvmin_fine = zeros(shape=size(v_min_fine))
+        gvmin_fine[0:-1] = flipud(cumtrapz(fv,v_min_fine))
         gvmin_fine[-1] = 0.0
         gvmin = interp(v_min,v_min_fine,gvmin_fine)
         
     else:
-        v_lab = LabFuncs.LabVelocitySimple(day,v_LSR=v_LSR,v_shift=v_shift)
+        v_lab = LabFuncs.LabVelocitySimple(day,v_LSR=v_LSR)-v_shift
         N_esc = Nesc_Isotropic(sig,v_esc)
         v_e = sqrt(sum(v_lab**2.0))
         v0 = sig*sqrt(2.0)
@@ -210,11 +222,13 @@ def gvmin_Isotropic(v_min,day,v_LSR=233.0,sig=164.75,v_esc=528.0,\
     return gvmin
     
     
-def gvmin_Triaxial(v_min,v_lab,beta=0.9,v0=233.0,v_esc=528.0):    
+def gvmin_3D(v_min,day,sig,v_LSR=233.0,v_esc=528.0,\
+                  v_shift=array([0.0,0.0,0.0]),GravFocus=False):    
     v_min_fine = linspace(0.0001,800.0,300)
-    fv = flipud((1.0/v_min)*SpeedDist_Triaxial(v_min_fine,v_lab,beta=beta,v0=v0,v_esc=v_esc))
-    gvmin_fine = zeros(shape=size(v_min))
-    gvmin_fine[0:-1] = flipud(cumtrapz(fv,v_min))
+    fv = flipud((1.0/v_min_fine)*SpeedDist_3D(v_min_fine,day,sig,v_LSR=v_LSR,v_esc=v_esc,\
+                                              v_shift=array([0.0,0.0,0.0]),GravFocus=GravFocus))
+    gvmin_fine = zeros(shape=size(v_min_fine))
+    gvmin_fine[0:-1] = flipud(cumtrapz(fv,v_min_fine))
     gvmin_fine[-1] = 0.0
     gvmin = interp(v_min,v_min_fine,gvmin_fine)
     return gvmin

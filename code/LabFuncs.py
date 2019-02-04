@@ -266,8 +266,8 @@ def JulianDay(month, day, year, hour): # Calculates time in JD for a given date
                 + floor(year_r/400.0) - 32045 + (hour-12.0)/24.0
     return JulianDay
 
-def LabVelocitySimple(day,v_LSR=233.0,v_shift=array([0.0,0.0,0.0])):
-    vsun = array([0.0,v_LSR,0.0])+v_pec-v_shift
+def LabVelocitySimple(day,v_LSR=233.0):
+    vsun = array([0.0,v_LSR,0.0])+v_pec
     v_lab = vsun + EarthVelocity(day)
     return v_lab
 
@@ -286,6 +286,32 @@ def EarthVector(day):
     T2 = lamb + nu
     r_earth = r*(-sin(T2)*e1 + cos(T2)*e2)
     return r_earth
+
+def v_infinity(v,costh,phi,day):
+    x_earth = EarthVector(day)
+    r_earth = sqrt(sum(x_earth**2.0))
+    x_earth /= r_earth
+    v_earth = EarthVelocity(day)
+    uu_esc = 2*bigG*Msun/r_earth
+
+    vx = v*sqrt(1.0-costh**2.0)*cos(phi)+v_earth[0]
+    vy = v*sqrt(1.0-costh**2.0)*sin(phi)+v_earth[1]
+    vz = v*costh+v_earth[2]
+    
+    vv_inf = (vx**2.0+vy**2.0+vz**2.0)-uu_esc
+    vv_inf[vv_inf<0.0] = 0.0
+    
+    vdotr = vx*x_earth[0]+vy*x_earth[1]+vz*x_earth[2]
+
+    v_inf = sqrt(vv_inf)
+
+    denom = vv_inf + 0.5*uu_esc - v_inf*vdotr
+    v_infx = (vv_inf*vx + 0.5*v_inf*uu_esc*x_earth[0] - v_inf*vx*vdotr)/denom
+    v_infy = (vv_inf*vy + 0.5*v_inf*uu_esc*x_earth[1] - v_inf*vy*vdotr)/denom
+    v_infz = (vv_inf*vz + 0.5*v_inf*uu_esc*x_earth[2] - v_inf*vz*vdotr)/denom
+    
+    
+    return v_infx,v_infy,v_infz
 
 def GravFocusAngles(vv,costh,phi,day,sig=164.75,v_LSR=233.0,v_shift=array([0.0,0.0,0.0])):
     v1 = vv*sqrt(1.0-costh**2.0)*cos(phi)

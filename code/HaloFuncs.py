@@ -15,6 +15,7 @@ import Params
 
 
 
+
 #==============================================================================#
 # Normalisation constants
 def Nesc_Isotropic(sig,v_esc):
@@ -34,8 +35,11 @@ def Nesc_Triaxial(sigr,sigphi,beta,v_esc):
 
 #==============================================================================#
 # Velocity distributions
-def VelocityDist_Isotropic(v,v_lab,v0=233.0,v_esc=528.0):
-    sig = v0/sqrt(2.0)
+def VelocityDist_Isotropic(v,day,v_LSR=233.0,sig=164.75,v_esc=528.0,\
+                        v_shift=array([0.0,0.0,0.0]),GravFocus=False):
+    v_lab = LabFuncs.LabVelocitySimple(day,v_LSR=v_LSR)-v_shift
+   
+    v0 = sig*sqrt(2.0)
     N_esc = Nesc_Isotropic(sig,v_esc)
     vr = v[:,0]
     vphi = v[:,1]
@@ -47,28 +51,21 @@ def VelocityDist_Isotropic(v,v_lab,v0=233.0,v_esc=528.0):
                 +(vphi+v_lab[1])**2.0)/(2*sig**2.0)))*(V<v_esc)
     return fv3
 
-def VelocityDist_Triaxial(v,v_lab,beta=0.9,v0=233.0,v_esc=528.0):
-    sigr = sqrt(3*v0**2.0/(2.0*(3-2.0*beta)))
-    sigphi = sqrt(3*v0**2.0*(1-beta)/(2.0*(3-2.0*beta)))
-    sigz = sigphi
-    N_esc = Nesc_Triaxial(sigr,sigphi,beta,v_esc)
-    N = 1.0/((2*pi)**(1.5)*sigr*sigphi*sigz*N_esc)
-    
-    vr = v[:,0]
-    vphi = v[:,1]
-    vz = v[:,2]
-    V = sqrt((vr+v_lab[0])**2.0+(vphi+v_lab[1])**2.0+(vz+v_lab[2])**2.0)
-    fv3  = N*exp(-((vr+v_lab[0])**2.0/(2*sigr**2.0))\
-               -((vz+v_lab[2])**2.0/(2*sigz**2.0))\
-               -((vphi+v_lab[1])**2.0/(2*sigphi**2.0)))*(V<v_esc)
-    return fv3
 
-def VelocityDist_3D(v,v_lab,sig3,v0=233.0,v_esc=528.0):
+def VelocityDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
+                        v_shift=array([0.0,0.0,0.0]),GravFocus=False):
+    v_lab = LabFuncs.LabVelocitySimple(day,v_LSR=v_LSR)-v_shift
+    
     sigr = sig3[0]
     sigphi = sig3[1]
     sigz = sig3[2]
-    N_esc = 1.0
-    N = 1.0/((2*pi)**(1.5)*sigr*sigphi*sigz*N_esc)
+    beta = 1.0-(sigphi**2.0+sigz**2.0)/(2*sigr**2.0)
+    if beta>0.0:
+        N_esc = Nesc_Triaxial(sigr,sigphi,beta,v_esc)
+    else:
+        N_esc = 1.0
+        
+    N = 1.0/(N_esc*(2*pi)**(1.5)*sigr*sigphi*sigz)
     
     vr = v[:,0]
     vphi = v[:,1]
@@ -85,6 +82,15 @@ def VelocityDist_3D(v,v_lab,sig3,v0=233.0,v_esc=528.0):
 
 #==============================================================================#
 # Speed distributions
+
+# Resolution of integral over velocities:
+n = 151
+dth = 2.0/(n-1.0)
+dph = 2*pi/(n*1.0)
+cvals = arange(-1.0,1.0,dth)
+pvals = arange(0,2*pi-dph,dph)
+C,P = meshgrid(cvals,pvals)
+    
 def SpeedDist_Isotropic(v,day,v_LSR=233.0,sig=164.75,v_esc=528.0,\
                         v_shift=array([0.0,0.0,0.0]),GravFocus=False):
     v_lab = LabFuncs.LabVelocitySimple(day,v_LSR=v_LSR)-v_shift
@@ -98,13 +104,6 @@ def SpeedDist_Isotropic(v,day,v_LSR=233.0,sig=164.75,v_esc=528.0,\
         
     if GravFocus:
         nvals = size(v)
-        n = 151
-        dth = 2.0/(n-1.0)
-        dph = 2*pi/(n*1.0)
-        cvals = arange(-1.0,1.0,dth)
-        pvals = arange(0,2*pi-dph,dph)
-        C,P = meshgrid(cvals,pvals)
-
         fvJ = zeros(shape=nvals)
         for i in range(0,nvals):
             vv = v[i]
@@ -120,12 +119,8 @@ def SpeedDist_Isotropic(v,day,v_LSR=233.0,sig=164.75,v_esc=528.0,\
 
 
 
-def SpeedDist_3D(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
+def SpeedDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
                         v_shift=array([0.0,0.0,0.0]),GravFocus=False):
-   
-    #sigr=sqrt(3*v0**2.0/(2.0*(3-2.0*beta)))
-    #sigphi=sqrt(3*v0**2.0*(1-beta)/(2.0*(3-2.0*beta)))
-    #sigz=sqrt(3*v0**2.0*(1-beta)/(2.0*(3-2.0*beta)))
     sigr = sig3[0]
     sigphi = sig3[1]
     sigz = sig3[2]
@@ -139,15 +134,10 @@ def SpeedDist_3D(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
     v_e = LabFuncs.LabVelocitySimple(day,v_LSR=v_LSR)
     vv_e = sqrt(sum(v_e**2.0))
 
-    N_esc = 1.0
-    N = 1.0/((2*pi)**(1.5)*sigr*sigphi*sigz*N_esc)
+    N = 1.0/(N_esc*(2*pi)**(1.5)*sigr*sigphi*sigz)
     n = size(v)
     fv1 = zeros(shape=n)
     
-    nf = 300
-    costhvals = linspace(-1,1,nf)
-    phivals = linspace(0,2*pi,nf)
-    C,P = meshgrid(costhvals,phivals)
     if GravFocus==False:
         v_off = v_e-v_shift
         
@@ -161,7 +151,7 @@ def SpeedDist_3D(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
             F  = N*exp(-(vr**2.0/(2*sigr**2.0))\
                        -(vz**2.0/(2*sigz**2.0))\
                        -(vphi**2.0/(2*sigphi**2.0)))*(V<(v_esc+vv_e))
-            fv1[i] = (v1**2.0)*trapz(trapz(F,phivals,axis=1),costhvals)
+            fv1[i] = (v1**2.0)*dth*dph*sum(sum(F))
     else:
         
         v_off = LabFuncs.v_pec+array([0.0,v_LSR,0.0])-v_shift
@@ -177,7 +167,7 @@ def SpeedDist_3D(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
             F  = N*exp(-(vr**2.0/(2*sigr**2.0))\
                        -(vz**2.0/(2*sigz**2.0))\
                        -(vphi**2.0/(2*sigphi**2.0)))*(V<(v_esc+vv_e))
-            fv1[i] = (v1**2.0)*trapz(trapz(F,phivals,axis=1),costhvals)
+            fv1[i] = (v1**2.0)*dth*dph*sum(sum(F))
             
     fv1[v>(v_esc+vv_e)] = 0.0
     return fv1
@@ -190,18 +180,21 @@ def SpeedDist_3D(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
 #==============================================================================#
 # Halo integrals
 def gvmin_Isotropic(v_min,day,v_LSR=233.0,sig=164.75,v_esc=528.0,\
-                    v_shift=array([0.0,0.0,0.0]),GravFocus=False):
+                    v_shift=array([0.0,0.0,0.0]),GravFocus=False,v_exponent=-1.0):
    
-    if GravFocus:
+    if (GravFocus) or (v_exponent!=-1.0):
+        
         v_min_fine = linspace(0.0001,800.0,300)
-        fv = flipud((1.0/v_min_fine)*SpeedDist_Isotropic(v_min_fine,day,v_LSR=v_LSR,sig=sig,\
-                                 v_esc=v_esc,v_shift=v_shift,GravFocus=True))
+        fv = flipud((v_min_fine**v_exponent)*\
+                    SpeedDist_Isotropic(v_min_fine,day,v_LSR=v_LSR,sig=sig,\
+                                 v_esc=v_esc,v_shift=v_shift,GravFocus=GravFocus))
         gvmin_fine = zeros(shape=size(v_min_fine))
         gvmin_fine[0:-1] = flipud(cumtrapz(fv,v_min_fine))
         gvmin_fine[-1] = 0.0
         gvmin = interp(v_min,v_min_fine,gvmin_fine)
         
     else:
+        # If Grav focus being ignored and exponent=-1, can use analytic result
         v_lab = LabFuncs.LabVelocitySimple(day,v_LSR=v_LSR)-v_shift
         N_esc = Nesc_Isotropic(sig,v_esc)
         v_e = sqrt(sum(v_lab**2.0))
@@ -222,29 +215,65 @@ def gvmin_Isotropic(v_min,day,v_LSR=233.0,sig=164.75,v_esc=528.0,\
     return gvmin
     
     
-def gvmin_3D(v_min,day,sig,v_LSR=233.0,v_esc=528.0,\
-                  v_shift=array([0.0,0.0,0.0]),GravFocus=False):    
+def gvmin_Triaxial(v_min,day,sig,v_LSR=233.0,v_esc=528.0,\
+                  v_shift=array([0.0,0.0,0.0]),GravFocus=False,v_exponent=-1.0):    
     v_min_fine = linspace(0.0001,800.0,300)
-    fv = flipud((1.0/v_min_fine)*SpeedDist_3D(v_min_fine,day,sig,v_LSR=v_LSR,v_esc=v_esc,\
-                                              v_shift=array([0.0,0.0,0.0]),GravFocus=GravFocus))
+    fv = flipud((v_min_fine**v_exponent)*\
+                SpeedDist_Triaxial(v_min_fine,day,sig,v_LSR=v_LSR,v_esc=v_esc,\
+                                              v_shift=v_shift,GravFocus=GravFocus))
     gvmin_fine = zeros(shape=size(v_min_fine))
     gvmin_fine[0:-1] = flipud(cumtrapz(fv,v_min_fine))
     gvmin_fine[-1] = 0.0
     gvmin = interp(v_min,v_min_fine,gvmin_fine)
     return gvmin
     
-def fhat_Isotropic(v_min,x,v_lab,v0=233.0,v_esc=528.0):
-    # Radon transform
-    sig_v = v0/sqrt(2.0)
-    N_esc = Nesc_Isotropic(sig_v,v_esc)
+def fhat_Isotropic(v_min,x,day,v_LSR=233.0,sig=164.75,v_esc=528.0,\
+                    v_shift=array([0.0,0.0,0.0])):
+    # RECOIL VECTOR x JUST NEEDS TO BE IN SAME COORDINATES AS v_lab
+    v_lab = LabFuncs.LabVelocitySimple(day,v_LSR=v_LSR)-v_shift
+
+    v0 = sig*sqrt(2.0)
+    N_esc = Nesc_Isotropic(sig,v_esc)
         
     vlabdotq = (x[:,0]*v_lab[0]+x[:,1]*v_lab[1]+x[:,2]*v_lab[2]) # recoil projection
 
     fhat = zeros(shape=size(vlabdotq))
-    fhat[((v_min+vlabdotq)<(v_esc))] = (1/(N_esc*sqrt(2*pi*sig_v**2.0)))\
+    fhat[((v_min+vlabdotq)<(v_esc))] = (1/(N_esc*sqrt(2*pi*sig**2.0)))\
                                         *(exp(-(v_min+vlabdotq[((v_min+vlabdotq)<(v_esc))])\
-                                        **2.0/(2*sig_v**2.0))\
-                                        -exp(-v_esc**2.0/(2*sig_v**2.0)))
+                                        **2.0/(2*sig**2.0))\
+                                        -exp(-v_esc**2.0/(2*sig**2.0)))
     fhat /= 2*pi
     return fhat
+
+
+def fhat_Triaxial(v_min,x,day,sig3,v_LSR=233.0,v_esc=528.0,\
+                    v_shift=array([0.0,0.0,0.0])):
+    # RECOIL VECTOR x MUST BE IN GALACTIC COORDINATES
+    
+    v_lab = LabFuncs.LabVelocitySimple(day,v_LSR=v_LSR)-v_shift
+    
+    sigr = sig3[0]
+    sigphi = sig3[1]
+    sigz = sig3[2]
+
+    beta = 1.0-(sigphi**2.0+sigz**2.0)/(2*sigr**2.0)
+    if beta>0.0:
+        N_esc = Nesc_Triaxial(sigr,sigphi,beta,v_esc)
+    else:
+        N_esc = 1.0
+                
+    vlabdotq = (x[:,0]*v_lab[0]+x[:,1]*v_lab[1]+x[:,2]*v_lab[2]) # recoil projection
+    
+    qsq = (x[:,0]*sigr)**2.0 + (x[:,1]*sigphi)**2.0 + (x[:,2]*sigz)**2.0
+    
+    fhat = zeros(shape=size(vlabdotq))
+    mask = ((v_min+vlabdotq)<(v_esc))
+    fhat[mask] = (1.0/(N_esc*sqrt(2*pi*qsq[mask])))*\
+              (exp(-(v_min+vlabdotq[mask])**2.0/(2*qsq[mask]))-\
+              exp(-v_esc**2.0/(2*qsq[mask])))
+
+    fhat /= 2*pi
+    return fhat
+
+
 #==============================================================================#

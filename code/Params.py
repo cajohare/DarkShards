@@ -64,6 +64,10 @@ class Halo:
                             exp(-v_esc**2.0/(2.0*sig_v**2.0))
         self.SausageBeta = beta
         self.SausageEta = eta
+        sigr=sqrt(3*v_LSR**2.0/(2.0*(3-2.0*beta)))
+        sigphi=sqrt(3*v_LSR**2.0*(1-beta)/(2.0*(3-2.0*beta)))
+        sigz=sqrt(3*v_LSR**2.0*(1-beta)/(2.0*(3-2.0*beta)))
+        self.SausageDispersionTensor = array([sigr,sigphi,sigz])
 
 # Standard Halo Model (old parameters)
 SHM = Halo(0.3,

@@ -101,6 +101,7 @@ def SpeedDist_Isotropic(v,day,v_LSR=233.0,sig=164.75,v_esc=528.0,\
         *(exp(-(v**2.0+v_e**2.0-2.0*v*v_e)/(2*sig**2.0))\
         -exp(-(v**2.0+v_e**2.0+2.0*v*v_e)/(2*sig**2.0)))\
         *((v)<(v_esc+v_e))
+    fv1 *= (1.0-pi*exp(-v_esc**2.0/v0**2.0))
         
     if GravFocus:
         nvals = size(v)

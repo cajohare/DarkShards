@@ -12,7 +12,14 @@ import Params
 #==============================================================================#
 
 
+import healpy as hp
 
+nside = 16
+npix = 12*nside**2
+dpix = 4*pi/(npix*1.0)
+x_pix = zeros(shape=(npix,3))
+for i in range(0,npix):
+    x_pix[i,:] = hp.pix2vec(nside, i)
 
 
 
@@ -60,8 +67,11 @@ def VelocityDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
     sigphi = sig3[1]
     sigz = sig3[2]
     beta = 1.0-(sigphi**2.0+sigz**2.0)/(2*sigr**2.0)
+
     if beta>0.0:
         N_esc = Nesc_Triaxial(sigr,sigphi,beta,v_esc)
+    elif beta==0.0:
+        N_esc = Nesc_Isotropic(sigr,v_esc)
     else:
         N_esc = 1.0
         
@@ -84,9 +94,9 @@ def VelocityDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
 # Speed distributions
 
 # Resolution of integral over velocities:
-n = 151
+n = 51
 dth = 2.0/(n-1.0)
-dph = 2*pi/(n*1.0)
+dph = 2*pi/(2*n*1.0)
 cvals = arange(-1.0,1.0,dth)
 pvals = arange(0,2*pi-dph,dph)
 C,P = meshgrid(cvals,pvals)
@@ -129,11 +139,12 @@ def SpeedDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
     beta = 1.0-(sigphi**2.0+sigz**2.0)/(2*sigr**2.0)
     if beta>0.0:
         N_esc = Nesc_Triaxial(sigr,sigphi,beta,v_esc)
+    elif beta==0.0:
+        N_esc = Nesc_Isotropic(sigr,v_esc)
     else:
         N_esc = 1.0
     
     v_e = LabFuncs.LabVelocitySimple(day,v_LSR=v_LSR)
-    vv_e = sqrt(sum(v_e**2.0))
 
     N = 1.0/(N_esc*(2*pi)**(1.5)*sigr*sigphi*sigz)
     n = size(v)
@@ -141,6 +152,7 @@ def SpeedDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
     
     if GravFocus==False:
         v_off = v_e-v_shift
+        vv_e = sqrt(sum(v_off**2.0))
         
         for i in range(0,n):
             v1 = v[i]
@@ -156,6 +168,7 @@ def SpeedDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
     else:
         
         v_off = LabFuncs.v_pec+array([0.0,v_LSR,0.0])-v_shift
+        vv_e = sqrt(sum(v_off**2.0))
 
         for i in range(0,n):
             v1 = v[i]
@@ -174,6 +187,63 @@ def SpeedDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
     return fv1
 
 
+
+
+def SpeedDist_Triaxial_alt(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
+                        v_shift=array([0.0,0.0,0.0]),GravFocus=False):
+    sigr = sig3[0]
+    sigphi = sig3[1]
+    sigz = sig3[2]
+
+    beta = 1.0-(sigphi**2.0+sigz**2.0)/(2*sigr**2.0)
+    if beta>0.0:
+        N_esc = Nesc_Triaxial(sigr,sigphi,beta,v_esc)
+    elif beta==0.0:
+        N_esc = Nesc_Isotropic(sigr,v_esc)
+    else:
+        N_esc = 1.0
+    
+    v_e = LabFuncs.LabVelocitySimple(day,v_LSR=v_LSR)
+
+    N = 1.0/(N_esc*(2*pi)**(1.5)*sigr*sigphi*sigz)
+    n = size(v)
+    fv1 = zeros(shape=n)
+    
+    if GravFocus==False:
+        v_off = v_e-v_shift
+        vv_e = sqrt(sum(v_off**2.0))
+        
+        for i in range(0,n):
+            v1 = v[i]
+            vr = v1*x_pix[:,0]+v_off[0]
+            vphi = v1*x_pix[:,1]+v_off[1]
+            vz = v1*x_pix[:,2]+v_off[2]
+            V = sqrt(vr**2.0+vphi**2.0+vz**2.0)
+
+            F  = N*exp(-(vr**2.0/(2*sigr**2.0))\
+                       -(vz**2.0/(2*sigz**2.0))\
+                       -(vphi**2.0/(2*sigphi**2.0)))*(V<(v_esc+vv_e))
+            fv1[i] = (v1**2.0)*sum(F)*dpix
+    else:
+        
+        v_off = LabFuncs.v_pec+array([0.0,v_LSR,0.0])-v_shift
+        vv_e = sqrt(sum(v_off**2.0))
+
+        for i in range(0,n):
+            v1 = v[i]
+            vr,vphi,vz = LabFuncs.v_infinity_alt(v1*x_pix,day)
+
+            vr += v_off[0]
+            vphi += v_off[1]
+            vz += v_off[2]
+            V = sqrt(vr**2.0+vphi**2.0+vz**2.0)
+            F  = N*exp(-(vr**2.0/(2*sigr**2.0))\
+                       -(vz**2.0/(2*sigz**2.0))\
+                       -(vphi**2.0/(2*sigphi**2.0)))*(V<(v_esc+vv_e))
+            fv1[i] = (v1**2.0)*sum(F)*dpix
+            
+    fv1[v>(v_esc+vv_e)] = 0.0
+    return fv1
 
 
 

@@ -299,7 +299,34 @@ def v_infinity(v,costh,phi,day):
     vz = v*costh+v_earth[2]
     
     vv_inf = (vx**2.0+vy**2.0+vz**2.0)-uu_esc
-    vv_inf[vv_inf<0.0] = 0.0
+    vv_inf = (vv_inf+abs(vv_inf))/2.0
+    
+    vdotr = vx*x_earth[0]+vy*x_earth[1]+vz*x_earth[2]
+
+    v_inf = sqrt(vv_inf)
+
+    denom = vv_inf + 0.5*uu_esc - v_inf*vdotr
+    v_infx = (vv_inf*vx + 0.5*v_inf*uu_esc*x_earth[0] - v_inf*vx*vdotr)/denom
+    v_infy = (vv_inf*vy + 0.5*v_inf*uu_esc*x_earth[1] - v_inf*vy*vdotr)/denom
+    v_infz = (vv_inf*vz + 0.5*v_inf*uu_esc*x_earth[2] - v_inf*vz*vdotr)/denom
+    
+    
+    return v_infx,v_infy,v_infz
+
+def v_infinity_alt(v3,day):
+    x_earth = EarthVector(day)
+    r_earth = sqrt(sum(x_earth**2.0))
+    x_earth /= r_earth
+    v_earth = EarthVelocity(day)
+    uu_esc = 2*bigG*Msun/r_earth
+
+    vx = v3[:,0]+v_earth[0]
+    vy = v3[:,1]+v_earth[1]
+    vz = v3[:,2]+v_earth[2]
+    
+    vv_inf = (vx**2.0+vy**2.0+vz**2.0)-uu_esc
+    vv_inf = (vv_inf+abs(vv_inf))/2.0
+    #vv_inf[vv_inf<0.0] = 0.0
     
     vdotr = vx*x_earth[0]+vy*x_earth[1]+vz*x_earth[2]
 

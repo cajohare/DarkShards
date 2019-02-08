@@ -111,7 +111,7 @@ def SpeedDist_Isotropic(v,day,v_LSR=233.0,sig=164.75,v_esc=528.0,\
         *(exp(-(v**2.0+v_e**2.0-2.0*v*v_e)/(2*sig**2.0))\
         -exp(-(v**2.0+v_e**2.0+2.0*v*v_e)/(2*sig**2.0)))\
         *((v)<(v_esc+v_e))
-    fv1 *= (1.0-pi*exp(-v_esc**2.0/v0**2.0))
+    fv1 /= trapz(fv1,v)
         
     if GravFocus:
         nvals = size(v)
@@ -131,7 +131,7 @@ def SpeedDist_Isotropic(v,day,v_LSR=233.0,sig=164.75,v_esc=528.0,\
 
 
 def SpeedDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
-                        v_shift=array([0.0,0.0,0.0]),GravFocus=False):
+                        v_shift=array([0.0,0.0,0.0]),GravFocus=False,GalFrame=False):
     sigr = sig3[0]
     sigphi = sig3[1]
     sigz = sig3[2]
@@ -143,16 +143,20 @@ def SpeedDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
         N_esc = Nesc_Isotropic(sigr,v_esc)
     else:
         N_esc = 1.0
-    
-    v_e = LabFuncs.LabVelocitySimple(day,v_LSR=v_LSR)
+   
 
     N = 1.0/(N_esc*(2*pi)**(1.5)*sigr*sigphi*sigz)
     n = size(v)
     fv1 = zeros(shape=n)
-    
+
     if GravFocus==False:
-        v_off = v_e-v_shift
-        vv_e = sqrt(sum(v_off**2.0))
+        if GalFrame:
+            v_off = -v_shift
+            v_max = v_esc
+        else:
+            v_e = LabFuncs.LabVelocitySimple(day,v_LSR=v_LSR)
+            v_max = v_esc+sqrt(sum(v_e**2.0))
+            v_off = v_e-v_shift
         
         for i in range(0,n):
             v1 = v[i]
@@ -160,11 +164,13 @@ def SpeedDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
             vphi = v1*sqrt(1-C**2.0)*sin(P)+v_off[1]
             vz = v1*C+v_off[2]
             V = sqrt(vr**2.0+vphi**2.0+vz**2.0)
-
+            
             F  = N*exp(-(vr**2.0/(2*sigr**2.0))\
                        -(vz**2.0/(2*sigz**2.0))\
-                       -(vphi**2.0/(2*sigphi**2.0)))*(V<(v_esc+vv_e))
+                       -(vphi**2.0/(2*sigphi**2.0)))*(V<v_max)
             fv1[i] = (v1**2.0)*dth*dph*sum(sum(F))
+        fv1[v>v_max] = 0.0
+        fv1 /= trapz(fv1,v)
     else:
         
         v_off = LabFuncs.v_pec+array([0.0,v_LSR,0.0])-v_shift
@@ -183,7 +189,7 @@ def SpeedDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
                        -(vphi**2.0/(2*sigphi**2.0)))*(V<(v_esc+vv_e))
             fv1[i] = (v1**2.0)*dth*dph*sum(sum(F))
             
-    fv1[v>(v_esc+vv_e)] = 0.0
+        fv1[v>(v_esc+vv_e)] = 0.0
     return fv1
 
 

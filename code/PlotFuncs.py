@@ -9,6 +9,7 @@ from scipy.spatial import Delaunay
 from scipy.spatial import ConvexHull
 from scipy.stats import zscore
 
+Sun = array([8.122,0.0,0.005])
 
 def in_hull(p, hull):
     if not isinstance(hull,Delaunay):
@@ -32,6 +33,24 @@ def chaikins_corner_cutting(x_edge,y_edge, refinements=3):
         coords = L * 0.75 + R * 0.25
 
     return coords
+
+
+def RemovePhaseSpaceOutliers(x,y,z,U,V,W,z_th=6.0):
+    # reduced points
+    nstars = size(x)
+    if nstars>5:
+        ZSCORE = abs(zscore(z))+abs(zscore(x))+abs(zscore(y))\
+                +abs(zscore(U))+abs(zscore(V))+abs(zscore(W))
+    else:
+        ZSCORE = (z_th-1)*ones(shape=nstars)    
+    x_red = x[ZSCORE<z_th]
+    y_red = y[ZSCORE<z_th]
+    z_red = z[ZSCORE<z_th]
+    U_red = U[ZSCORE<z_th]
+    V_red = V[ZSCORE<z_th]
+    W_red = W[ZSCORE<z_th]
+    return x_red,y_red,z_red,U_red,V_red,W_red
+
 
 def VelocityTriangle(Cand,\
                      vmin=-495.0,vmax=495.0,nbins=30,\
@@ -175,7 +194,6 @@ def VelocityTriangle(Cand,\
     points[:,0] = x
     points[:,1] = y
     points[:,2] = z
-    Sun = array([8.0,0.0,0.0])
     SunOverlap = in_hull(Sun,points)
     if SunOverlap:
         plt.gcf().text(0.63,0.66,r'Contains Sun',fontsize=30)
@@ -191,7 +209,7 @@ def VelocityTriangle(Cand,\
 
 
 
-def XY_XZ(Cand,xmin = 0.0,xmax = 16.0,StarsColour='Purple',\
+def XY_XZ(Cand,z_th=6.0,xmin = 0.0,xmax = 16.0,StarsColour='Purple',\
           BulgeColour = 'Crimson',DiskColour = 'Blue',\
           cmap = cm.Greens,Grid = True):
 
@@ -213,7 +231,6 @@ def XY_XZ(Cand,xmin = 0.0,xmax = 16.0,StarsColour='Purple',\
     U,V,W = Cand.GalU,Cand.GalV,Cand.GalW
 
     # reduced points
-    z_th = 6.0
     ZSCORE = abs(zscore(z))+abs(zscore(x))+abs(zscore(y))\
             +abs(zscore(U))+abs(zscore(V))+abs(zscore(W))
     x_red = x[ZSCORE<z_th]
@@ -272,17 +289,30 @@ def XY_XZ(Cand,xmin = 0.0,xmax = 16.0,StarsColour='Purple',\
 
 
     # disk
-    z_thick = 2.0
+    z_thick = 1.5
     z_thin = 0.3
     ax_xz.fill_between([xmin,xmax],[z_thick,z_thick],y2=-z_thick,color=DiskColour,alpha=0.3)
     ax_xz.fill_between([xmin,xmax],[z_thin,z_thin],y2=-z_thin,color=DiskColour,alpha=0.3)
 
 
     # The sun
-    ax_xy.plot(8.0*cos(th),8.0*sin(th),'--',linewidth=3,color='orangered')
-    ax_xy.plot(8.0,0.0,'*',markerfacecolor='yellow',markersize=25,markeredgecolor='red',markeredgewidth=2)
-    ax_xz.plot(8.0,0.0,'*',markerfacecolor='yellow',markersize=25,markeredgecolor='red',markeredgewidth=2)
+    ax_xy.plot(Sun[0]*cos(th),Sun[0]*sin(th),'--',linewidth=3,color='orangered')
+    ax_xy.plot(Sun[0],Sun[1],'*',markerfacecolor='yellow',markersize=25,markeredgecolor='red',markeredgewidth=2)
+    ax_xz.plot(Sun[0],Sun[2],'*',markerfacecolor='yellow',markersize=25,markeredgecolor='red',markeredgewidth=2)
+    x1 = Sun[0]*cos(-pi/4)
+    y1 = Sun[0]*sin(-pi/4)
+    x2 = Sun[0]*cos(-pi/4+0.1)
+    y2 = Sun[0]*sin(-pi/4+0.1)
+    ax_xy.arrow(x1,y1,x2-x1,y2-y1,color='orangered',lw=3,length_includes_head=True,head_width=0.5)
 
+    x1 = Sun[0]*cos(pi/4)
+    y1 = Sun[0]*sin(pi/4)
+    x2 = Sun[0]*cos(pi/4+0.1)
+    y2 = Sun[0]*sin(pi/4+0.1)
+    ax_xy.arrow(x1,y1,x2-x1,y2-y1,color='orangered',lw=3,length_includes_head=True,head_width=0.5)
+
+    
+    
     # Total moving group arrow
     ax_xy.quiver(mean(x_red),mean(y_red),mean(U_red),mean(V_red),\
                  color=StarsColour,scale=1000.0,linewidth=1.5,edgecolor='k',width=0.01)

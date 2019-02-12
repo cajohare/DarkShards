@@ -202,7 +202,6 @@ def VelocityTriangle(Cand,\
 
 
     fig.savefig('../plots/stars/Vtriangle_'+name+'.pdf',bbox_inches='tight')
-    plt.close(fig)
     return fig
 
 
@@ -367,5 +366,4 @@ def XY_XZ(Cand,z_th=6.0,xmin = 0.0,xmax = 16.0,StarsColour='Purple',\
     beta = 1.0-(sigz**2.0+sigphi**2.0)/(2*sigr**2.0)
     plt.gcf().text(0.79, 0.16, r'$\beta$ = '+r'{:.2f}'.format(beta), fontsize=30)
     fig.savefig('../plots/stars/XYZ_'+name+'.pdf',bbox_inches='tight')
-    plt.close(fig)
-    return 
+    return fig

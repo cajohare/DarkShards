@@ -26,12 +26,13 @@ GeV_2_kg = 1.0e6*1.783e-33 # convert GeV to kg
 
 #==============================================================================#
 #-------------------- Energy-Time dependent recoil rate------------------------#
-def MinimumWIMPSpeed(E_r,A,m_chi):
+def MinimumWIMPSpeed(E_r,A,m_chi,delta=0):
     m_N = m_p*A # mass of nucleus
     mu_p = 1.0e6*m_chi*m_p/(1.0e6*m_chi + m_p) # reduced proton mass
     m_N_keV = A*0.9315*1.0e6 # nucleus mass in keV
     mu_N_keV = 1.0e6*m_chi*m_N_keV/(1.0e6*m_chi + m_N_keV) # reduced nucleus mass
-    v_min = (sqrt(2.0*m_N_keV*E_r)/(2.0*mu_N_keV))*3.0e8/1000.0 # vmin in km/s
+    #v_min = (sqrt(2.0*m_N_keV*E_r)/(2.0*mu_N_keV))*3.0e8/1000.0 # vmin in km/s
+    v_min = sqrt(1.0/(2*m_N_keV*E_r))*(m_N_keV*E_r/mu_N_keV + delta)
     return v_min
 
 def MaxWIMPEnergy(A,v_lab,m_chi,v_esc):

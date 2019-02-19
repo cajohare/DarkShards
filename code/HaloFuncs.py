@@ -1,5 +1,5 @@
 from numpy import pi, sqrt, exp, zeros, size, shape, linspace, meshgrid, cos, sin
-from numpy import trapz, arange, array, flipud, interp
+from numpy import trapz, arange, array, flipud, interp, inf
 from scipy.integrate import cumtrapz
 from numpy.linalg import norm
 from scipy.special import erf, erfi
@@ -32,6 +32,8 @@ def Nesc_Triaxial(sigr,sigphi,beta,v_esc):
     N_esc = erf(v_esc/(sqrt(2.0)*sigr)) - sqrt((1.0-beta)/beta)\
             *exp(-v_esc**2.0/(2.0*sigphi**2.0))\
             *erfi(v_esc/(sqrt(2)*sigr)*sqrt(beta/(1-beta)))
+    if (abs(N_esc)==inf):
+        N_esc = 1.0
     return N_esc
 #==============================================================================#
 
@@ -143,7 +145,6 @@ def SpeedDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
         N_esc = Nesc_Isotropic(sigr,v_esc)
     else:
         N_esc = 1.0
-   
 
     N = 1.0/(N_esc*(2*pi)**(1.5)*sigr*sigphi*sigz)
     n = size(v)

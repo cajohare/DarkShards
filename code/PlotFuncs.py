@@ -247,7 +247,7 @@ def fv_2D(V1,V2,clf,i,j):
     fv = fv-amax(fv)
     return fv
 
-def VelocityTriangle(Cand,vmin=-495.0,vmax=495.0,nfine=500,nbins_1D = 50,\
+def VelocityTriangle(Cand,vmin=-595.0,vmax=595.0,nfine=500,nbins_1D = 50,\
                             levels=[-6.2,-2.3,0],\
                             tit_fontsize=30,\
                             z_th = 6.0,\
@@ -259,8 +259,8 @@ def VelocityTriangle(Cand,vmin=-495.0,vmax=495.0,nfine=500,nbins_1D = 50,\
                             col_b = 'purple',\
                             col_c = 'dodgerblue',\
                             point_size = 8,\
-                            lblsize = 28,\
-                            xlblsize = 33,\
+                            lblsize = 31,\
+                            xlblsize = 35,\
                             def_alph = 0.2):
 
     
@@ -361,12 +361,12 @@ def VelocityTriangle(Cand,vmin=-495.0,vmax=495.0,nfine=500,nbins_1D = 50,\
     ax_zy.contour(vfine,vfine,fv_2D(V1,V2,clfc,1,2),levels=levels,colors=col_c,linewidths=3,linestyles='solid')
     plt.xlabel(r'$v_\phi$ [km s$^{-1}$]',fontsize=xlblsize)
 
-    ax_x.tick_params(which='major',direction='in',width=2,length=10,right=True,top=True,pad=7,labelsize=23)
-    ax_y.tick_params(which='major',direction='in',width=2,length=10,right=True,top=True,pad=7,labelsize=23)
-    ax_z.tick_params(which='major',direction='in',width=2,length=10,right=True,top=True,pad=7,labelsize=23)
-    ax_zx.tick_params(which='major',direction='in',width=2,length=10,right=True,top=True,pad=7,labelsize=23)
-    ax_yx.tick_params(which='major',direction='in',width=2,length=10,right=True,top=True,pad=7,labelsize=23)
-    ax_zy.tick_params(which='major',direction='in',width=2,length=10,right=True,top=True,pad=7,labelsize=23)
+    ax_x.tick_params(which='major',direction='in',width=2,length=10,right=True,top=True,pad=7,labelsize=24)
+    ax_y.tick_params(which='major',direction='in',width=2,length=10,right=True,top=True,pad=7,labelsize=24)
+    ax_z.tick_params(which='major',direction='in',width=2,length=10,right=True,top=True,pad=7,labelsize=24)
+    ax_zx.tick_params(which='major',direction='in',width=2,length=10,right=True,top=True,pad=7,labelsize=24)
+    ax_yx.tick_params(which='major',direction='in',width=2,length=10,right=True,top=True,pad=7,labelsize=24)
+    ax_zy.tick_params(which='major',direction='in',width=2,length=10,right=True,top=True,pad=7,labelsize=24)
 
 
     ax_yx.set_xlim([vmin,vmax])
@@ -425,9 +425,9 @@ def VelocityTriangle(Cand,vmin=-495.0,vmax=495.0,nfine=500,nbins_1D = 50,\
             bics[1] = -10000.0
                   
 
-    label_a = '1 mode (diag $\sigma$)'
-    label_b = '1 mode (full $\sigma$)'
-    label_c = '2 modes (full $\sigma$)'
+    label_a = '1 mode (diag $\Sigma$)'
+    label_b = '1 mode (full $\Sigma$)'
+    label_c = '2 modes (full $\Sigma$)'
     if (argmin(bics)==0) or (argmin(bics)==1) or (nstars<10):
         ax_x.fill_between(vfine,fv_1D(vfine,clfb,0),facecolor=col_b,alpha=def_alph,zorder=-5)
         ax_y.fill_between(vfine,fv_1D(vfine,clfb,1),facecolor=col_b,alpha=def_alph,zorder=-5)
@@ -445,18 +445,22 @@ def VelocityTriangle(Cand,vmin=-495.0,vmax=495.0,nfine=500,nbins_1D = 50,\
 
         covs = clfc.covariances_
         meens = clfc.means_
-        plt.gcf().text(xlab,0.705,r'$\langle v_r \rangle $ = '\
+        plt.gcf().text(xlab,0.705,r'$\bar{v}_r $ = '\
                        +'{:.1f}'.format(meens[0,0])\
                        +'$\pm$'+'{:.1f}'.format(sqrt(covs[0,0,0]))\
                        +' km s$^{-1}$',fontsize=25)           
-        plt.gcf().text(xlab,0.675,r'$\langle v_\phi \rangle $ = '\
+        plt.gcf().text(xlab,0.675,r'$\bar{v}_\phi $ = '\
                        +'{:.1f}'.format(meens[0,1])\
                        +'$\pm$'+'{:.1f}'.format(sqrt(covs[0,1,1]))\
                        +' km s$^{-1}$',fontsize=25)            
-        plt.gcf().text(xlab,0.645,r'$\langle v_z \rangle $ = '\
+        plt.gcf().text(xlab,0.645,r'$\bar{v}_z $ = '\
                        +'{:.1f}'.format(meens[0,2])\
                        +'$\pm$'+'{:.1f}'.format(sqrt(covs[0,2,2]))\
                        +' km s$^{-1}$',fontsize=25) 
+        
+        plt.gcf().text(xlab,0.615,r'[Fe/H] = '\
+                       +'{:.1f}'.format(meens[0,-1])\
+                       +'$\pm$'+'{:.1f}'.format(sqrt(covs[0,-1,-1])),fontsize=25) 
     else:
         ax_x.fill_between(vfine,fv_1D(vfine,clfc,0),facecolor=col_c,alpha=def_alph,zorder=-5)
         ax_y.fill_between(vfine,fv_1D(vfine,clfc,1),facecolor=col_c,alpha=def_alph,zorder=-5)
@@ -472,35 +476,38 @@ def VelocityTriangle(Cand,vmin=-495.0,vmax=495.0,nfine=500,nbins_1D = 50,\
                            y2=-10000,lw=3,edgecolor=col_c,facecolor=col_alpha(col_c),label=label_c)
         covs = clfc.covariances_
         meens = clfc.means_
-        plt.gcf().text(xlab,0.705,r'$\langle v_r \rangle $ = '\
+        plt.gcf().text(xlab,0.705,r'$\bar{v}_r $ = '\
                        +'{:.1f}'.format(meens[0,0])\
                        +'$\pm$'+'{:.1f}'.format(sqrt(covs[0,0,0]))\
-                       +' km s$^{-1}$',fontsize=23)           
-        plt.gcf().text(xlab,0.675,r'$\langle v_\phi \rangle $ = '\
+                       +' km s$^{-1}$',fontsize=25)           
+        plt.gcf().text(xlab,0.675,r'$\bar{v}_\phi $ = '\
                        +'{:.1f}'.format(meens[0,1])\
                        +'$\pm$'+'{:.1f}'.format(sqrt(covs[0,1,1]))\
-                       +' km s$^{-1}$',fontsize=23)            
-        plt.gcf().text(xlab,0.645,r'$\langle v_z \rangle $ = '\
+                       +' km s$^{-1}$',fontsize=25)            
+        plt.gcf().text(xlab,0.645,r'$\bar{v}_z $ = '\
                        +'{:.1f}'.format(meens[0,2])\
                        +'$\pm$'+'{:.1f}'.format(sqrt(covs[0,2,2]))\
-                       +' km s$^{-1}$',fontsize=23)  
+                       +' km s$^{-1}$',fontsize=25)  
 
-        plt.gcf().text(xlab,0.59,r'$\langle v_r \rangle $ = '\
+        plt.gcf().text(xlab,0.59,r'$\bar{v}_r $ = '\
                        +'{:.1f}'.format(meens[1,0])\
                        +'$\pm$'+'{:.1f}'.format(sqrt(covs[1,0,0]))\
-                       +' km s$^{-1}$',fontsize=23)           
-        plt.gcf().text(xlab,0.56,r'$\langle v_\phi \rangle $ = '\
+                       +' km s$^{-1}$',fontsize=25)           
+        plt.gcf().text(xlab,0.56,r'$\bar{v}_\phi $ = '\
                        +'{:.1f}'.format(meens[1,1])\
                        +'$\pm$'+'{:.1f}'.format(sqrt(covs[1,1,1]))\
-                       +' km s$^{-1}$',fontsize=23)            
-        plt.gcf().text(xlab,0.53,r'$\langle v_z \rangle $ = '\
+                       +' km s$^{-1}$',fontsize=25)            
+        plt.gcf().text(xlab,0.53,r'$\bar{v}_z $ = '\
                        +'{:.1f}'.format(meens[1,2])\
                        +'$\pm$'+'{:.1f}'.format(sqrt(covs[1,2,2]))\
-                       +' km s$^{-1}$',fontsize=23) 
+                       +' km s$^{-1}$',fontsize=25) 
+        plt.gcf().text(xlab,0.50,r'[Fe/H] = '\
+                       +'{:.1f}'.format(meens[0,-1])\
+                       +'$\pm$'+'{:.1f}'.format(sqrt(covs[0,-1,-1])),fontsize=25) 
 
         plt.gcf().text(xlab,0.74,r'{\bf Groups = 2}',fontsize=30,color=col_c) 
        
-    plt.legend(fontsize=lblsize-3,frameon=False,bbox_to_anchor=(1.05, 2.0), loc=2, borderaxespad=0.)
+    plt.legend(fontsize=lblsize-5,frameon=False,bbox_to_anchor=(1.05, 2.0), loc=2, borderaxespad=0.)
 
     fig.savefig('../plots/stars/Vtriangle_'+name+'.pdf',bbox_inches='tight') 
     return fig
@@ -518,9 +525,9 @@ def XY_XZ(Cand,z_th=6.0,xmin = 0.0,xmax = 16.0,StarsColour='Purple',\
     plt.rc('text', usetex=True)
     plt.rc('font', family='serif')
     
-    fig, axarr = plt.subplots(1, 2,figsize=(16,7))
+    fig, axarr = plt.subplots(1, 2,figsize=(17,7))
     gs = gridspec.GridSpec(1, 2)
-    gs.update(wspace=0.23)
+    gs.update(wspace=0.26)
     ax_xy = plt.subplot(gs[0])
     ax_xz = plt.subplot(gs[1])
 
@@ -627,18 +634,18 @@ def XY_XZ(Cand,z_th=6.0,xmin = 0.0,xmax = 16.0,StarsColour='Purple',\
    
 
     # xy labels
-    ax_xy.tick_params(which='major',direction='in',width=2,length=10,right=True,top=True,pad=10,labelsize=15)
+    ax_xy.tick_params(which='major',direction='in',width=2,length=10,right=True,top=True,pad=10,labelsize=20)
     ax_xy.tick_params(which='minor',direction='in',width=1,length=7,right=True,top=True)
     ax_xy.set_xlabel(r"Galactic $X$ [kpc]",fontsize=27);
     ax_xy.set_ylabel(r"Galactic $Y$ [kpc]",fontsize=27);
 
     # xz labels
-    ax_xz.tick_params(which='major',direction='in',width=2,length=10,right=True,top=True,pad=10,labelsize=15)
+    ax_xz.tick_params(which='major',direction='in',width=2,length=10,right=True,top=True,pad=10,labelsize=20)
     ax_xz.tick_params(which='minor',direction='in',width=1,length=7,right=True,top=True)
     ax_xz.set_xlabel(r"Galactic $X$ [kpc]",fontsize=27);
     ax_xz.set_ylabel(r"Galactic $Z$ [kpc]",fontsize=27);
 
-    plt.gcf().text(0.46,0.86,r'\bf {'+name+r'}', fontsize=40,horizontalalignment='right',verticalalignment='top')  
+    plt.gcf().text(0.89,0.85,r'\bf {'+name+r'}', fontsize=40,horizontalalignment='right',verticalalignment='top')  
 
     if Grid:
         phi = linspace(-pi/2,pi/2,7)

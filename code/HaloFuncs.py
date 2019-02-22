@@ -45,7 +45,7 @@ def Nesc_Triaxial(sigr,sigphi,beta,v_esc):
 #==============================================================================#
 # Velocity distributions
 def VelocityDist_Isotropic(v,day,v_LSR=233.0,sig=164.75,v_esc=528.0,\
-                        v_shift=array([0.0,0.0,0.0]),GravFocus=False):
+                        v_shift=array([0.0,0.0,0.0]),GravFocus=False,EscapeSpeed=True):
     v_lab = LabFuncs.LabVelocitySimple(day,v_LSR=v_LSR)-v_shift
    
     v0 = sig*sqrt(2.0)
@@ -104,7 +104,7 @@ pvals = arange(0,2*pi-dph,dph)
 C,P = meshgrid(cvals,pvals)
     
 def SpeedDist_Isotropic(v,day,v_LSR=233.0,sig=164.75,v_esc=528.0,\
-                        v_shift=array([0.0,0.0,0.0]),GravFocus=False):
+                        v_shift=array([0.0,0.0,0.0]),GravFocus=False,EscapeSpeed=True):
     v_lab = LabFuncs.LabVelocitySimple(day,v_LSR=v_LSR)-v_shift
     v_e = sqrt(sum(v_lab**2.0))
     v0 = sig*sqrt(2.0)
@@ -114,6 +114,10 @@ def SpeedDist_Isotropic(v,day,v_LSR=233.0,sig=164.75,v_esc=528.0,\
         -exp(-(v**2.0+v_e**2.0+2.0*v*v_e)/(2*sig**2.0)))\
         *((v)<(v_esc+v_e))
     fv1 /= trapz(fv1,v)
+    
+    if not EscapeSpeed: 
+        N_esc = 1.0
+        v_esc = 1000.0
         
     if GravFocus:
         nvals = size(v)
@@ -133,7 +137,8 @@ def SpeedDist_Isotropic(v,day,v_LSR=233.0,sig=164.75,v_esc=528.0,\
 
 
 def SpeedDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
-                        v_shift=array([0.0,0.0,0.0]),GravFocus=False,GalFrame=False):
+                        v_shift=array([0.0,0.0,0.0]),GravFocus=False,GalFrame=False,\
+                      EscapeSpeed=True):
     sigr = sig3[0]
     sigphi = sig3[1]
     sigz = sig3[2]
@@ -145,6 +150,10 @@ def SpeedDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
         N_esc = Nesc_Isotropic(sigr,v_esc)
     else:
         N_esc = 1.0
+        
+    if not EscapeSpeed: 
+        N_esc = 1.0
+        v_esc = 1000.0
 
     N = 1.0/(N_esc*(2*pi)**(1.5)*sigr*sigphi*sigz)
     n = size(v)

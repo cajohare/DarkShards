@@ -23,7 +23,7 @@ from skimage import measure
 Sun = array([8.122,0.0,0.005])
 
 
-def MySquarePlot(xlab,ylab,lw=2.5,lfs=45,tfs=25,size_x=16,size_y=16,Grid=False):
+def MySquarePlot(xlab,ylab,lw=2.5,lfs=45,tfs=25,size_x=13,size_y=12,Grid=False):
     plt.rcParams['axes.linewidth'] = lw
     plt.rc('text', usetex=True)
     plt.rc('font', family='serif',size=tfs)
@@ -40,6 +40,31 @@ def MySquarePlot(xlab,ylab,lw=2.5,lfs=45,tfs=25,size_x=16,size_y=16,Grid=False):
         ax.grid()
     return fig,ax
 
+def MyDoublePlot(xlab1,ylab1,xlab2,ylab2,wspace=0.25,lw=2.5,lfs=45,tfs=25,size_x=20,size_y=11,Grid=False):
+    plt.rcParams['axes.linewidth'] = lw
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif',size=tfs)
+    
+    fig, axarr = plt.subplots(1, 2,figsize=(size_x,size_y))
+    gs = gridspec.GridSpec(1, 2)
+    gs.update(wspace=wspace)
+    ax1 = plt.subplot(gs[0])
+    ax2 = plt.subplot(gs[1])
+    ax1.tick_params(which='major',direction='in',width=2,length=13,right=True,top=True,pad=7)
+    ax1.tick_params(which='minor',direction='in',width=1,length=10,right=True,top=True)
+    ax2.tick_params(which='major',direction='in',width=2,length=13,right=True,top=True,pad=7)
+    ax2.tick_params(which='minor',direction='in',width=1,length=10,right=True,top=True)
+    
+    ax1.set_xlabel(xlab1,fontsize=lfs)
+    ax1.set_ylabel(ylab1,fontsize=lfs) 
+    
+    ax2.set_xlabel(xlab2,fontsize=lfs)
+    ax2.set_ylabel(ylab2,fontsize=lfs) 
+    
+    if Grid:
+        ax1.grid()
+        ax2.grid()
+    return fig,ax1,ax2
 
 def in_hull(p, hull):
     if not isinstance(hull,Delaunay):

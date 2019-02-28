@@ -113,6 +113,7 @@ def SpeedDist_Isotropic(v,day,v_LSR=233.0,sig=164.75,v_esc=528.0,\
         *(exp(-(v**2.0+v_e**2.0-2.0*v*v_e)/(2*sig**2.0))\
         -exp(-(v**2.0+v_e**2.0+2.0*v*v_e)/(2*sig**2.0)))\
         *((v)<(v_esc+v_e))
+    
     fv1 /= trapz(fv1,v)
     
     if not EscapeSpeed: 
@@ -138,7 +139,7 @@ def SpeedDist_Isotropic(v,day,v_LSR=233.0,sig=164.75,v_esc=528.0,\
 
 def SpeedDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
                         v_shift=array([0.0,0.0,0.0]),GravFocus=False,GalFrame=False,\
-                      EscapeSpeed=True):
+                      EscapeSpeed=True,SmoothCutoff=False):
     sigr = sig3[0]
     sigphi = sig3[1]
     sigz = sig3[2]
@@ -168,6 +169,18 @@ def SpeedDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
             v_max = v_esc+sqrt(sum(v_e**2.0))
             v_off = v_e-v_shift
         
+        
+        if SmoothCutoff:
+            vr = (v_max)*sqrt(1-C**2.0)*cos(P)
+            vphi = (v_max)*sqrt(1-C**2.0)*sin(P)
+            vz = (v_max)*C
+            V = sqrt(vr**2.0+vphi**2.0+vz**2.0)
+            Fcorr = N*exp(-(vr**2.0/(2*sigr**2.0))\
+                          -(vz**2.0/(2*sigz**2.0))\
+                          -(vphi**2.0/(2*sigphi**2.0)))
+        else: 
+            Fcorr = 0.0
+            
         for i in range(0,n):
             v1 = v[i]
             vr = v1*sqrt(1-C**2.0)*cos(P)+v_off[0]
@@ -178,6 +191,8 @@ def SpeedDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
             F  = N*exp(-(vr**2.0/(2*sigr**2.0))\
                        -(vz**2.0/(2*sigz**2.0))\
                        -(vphi**2.0/(2*sigphi**2.0)))*(V<v_max)
+            
+            F = F-Fcorr
             fv1[i] = (v1**2.0)*dth*dph*sum(sum(F))
         fv1[v>v_max] = 0.0
         fv1 /= trapz(fv1,v)
@@ -185,6 +200,18 @@ def SpeedDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
         
         v_off = LabFuncs.v_pec+array([0.0,v_LSR,0.0])-v_shift
         vv_e = sqrt(sum(v_off**2.0))
+        v_max = v_esc+vv_e
+        
+        if SmoothCutoff:
+            vr = (v_max)*sqrt(1-C**2.0)*cos(P)
+            vphi = (v_max)*sqrt(1-C**2.0)*sin(P)
+            vz = (v_max)*C
+            V = sqrt(vr**2.0+vphi**2.0+vz**2.0)
+            Fcorr = N*exp(-(vr**2.0/(2*sigr**2.0))\
+                          -(vz**2.0/(2*sigz**2.0))\
+                          -(vphi**2.0/(2*sigphi**2.0)))
+        else: 
+            Fcorr = 0.0
 
         for i in range(0,n):
             v1 = v[i]
@@ -197,6 +224,7 @@ def SpeedDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
             F  = N*exp(-(vr**2.0/(2*sigr**2.0))\
                        -(vz**2.0/(2*sigz**2.0))\
                        -(vphi**2.0/(2*sigphi**2.0)))*(V<(v_esc+vv_e))
+            F = F-Fcorr
             fv1[i] = (v1**2.0)*dth*dph*sum(sum(F))
             
         fv1[v>(v_esc+vv_e)] = 0.0

@@ -24,7 +24,7 @@
 
 import numpy as np
 from numpy import cos, sin, pi, floor, exp, sqrt, size, zeros, shape, arccos
-from numpy import array
+from numpy import array, trapz
 
 
 def BinEvents(Expt,dRfunc,*Args):
@@ -161,6 +161,22 @@ def Smear(x,dR,sig_gamma):
     dR_smeared = dR_smeared*sum(dR)/sum(dR_smeared)
     return dR_smeared
 #------------------------------------------------------------------------------#
+
+
+#==============================Angular Res=====================================#
+def SmearE(E,dR,sig_E):
+    nE = size(dR)
+    dR_smeared = zeros(shape=shape(dR))
+    if size(sig_E)==1:
+        sig_E *= ones(shape=shape(dR))              
+    for i in range(0,nE):
+        Ediff = abs(E-E[i])
+        dR_smeared[i] = trapz(dR*exp(-Ediff**2.0/(2*sig_E**2.0)),E)
+
+    dR_smeared = dR_smeared*trapz(dR,E)/trapz(dR_smeared,E)
+    return dR_smeared
+#------------------------------------------------------------------------------#
+
 
 
 

@@ -8,7 +8,7 @@ from matplotlib import colors
 import pandas
 from scipy.spatial import Delaunay
 from scipy.spatial import ConvexHull
-from scipy.stats import zscore,chi2
+from scipy.stats import zscore,chi2,multivariate_normal
 from sklearn import mixture
 from scipy.special import erfinv
 
@@ -113,6 +113,33 @@ def RemovePhaseSpaceOutliers(x,y,z,U,V,W,z_th=6.0):
     return x_red,y_red,z_red,U_red,V_red,W_red
 
 
+
+def SunProb(x_meens,x_covs):
+    ng = shape(x_meens)[0]
+    Psun = zeros(shape=ng)
+    for i in range(0,ng):
+        xyz = squeeze(x_meens[i,:])
+        dxyz = squeeze(x_covs[i,:,:])
+        Lmax = log(multivariate_normal.pdf(xyz, mean=xyz, cov=dxyz))
+        Lsun = log(multivariate_normal.pdf(Sun, mean=xyz, cov=dxyz))
+        dL = -2*(Lsun-Lmax)
+        Psun[i] = sqrt(2)*erfinv(chi2.cdf(dL,3))
+    
+    if sum(Psun)==inf:
+        for i in range(0,ng):
+            xyz = squeeze(x_meens[i,:])
+            dxyz = squeeze(x_covs[i,:,:])
+            dxyz = diagonal(dxyz)
+            Lmax = log(multivariate_normal.pdf(xyz, mean=xyz, cov=dxyz))
+            Lsun = log(multivariate_normal.pdf(Sun, mean=xyz, cov=dxyz))
+            dL = -2*(Lsun-Lmax)
+            Psun[i] = sqrt(2)*erfinv(chi2.cdf(dL,3))
+    Psun = squeeze(Psun)
+    return Psun
+    
+    
+    
+
 def FitStars(Cand,RemoveOutliers = False,z_th = 6.0):
 
     # Get data
@@ -183,20 +210,11 @@ def FitStars(Cand,RemoveOutliers = False,z_th = 6.0):
     v_meens = meens[:,3:6]
     x_covs = covs[:,0:3,0:3]
     v_covs = covs[:,3:6,3:6]
+    
+    Psun = SunProb(x_meens,x_covs)
 
-        
-    # Sun overlap (just use positional data)
-    clf_xyz = mixture.GaussianMixture(n_components=1, covariance_type='full')
-    clf_xyz.fit(array([x,y,z]).T)
-    lsun = clf_xyz.score_samples(Sun.reshape(-1,1).T)
-    xyz_meens = clf_xyz.means_
-    lmax = clf_xyz.score_samples(xyz_meens)
-    dL = -2*(lsun-lmax)
-    Psun = sqrt(2)*erfinv(chi2.cdf(dL,3))
 
     return x_meens,x_covs,v_meens,v_covs,fehs,pops,Psun
-
-
 
 
 
@@ -419,16 +437,6 @@ def VelocityTriangle(Cand,vmin=-595.0,vmax=595.0,nfine=500,nbins_1D = 50,\
     plt.gcf().text(xlab,0.805,str(nstars)+' stars',fontsize=30)
     #plt.gcf().text(x_lab,0.8,r'$\langle$[Fe/H]$\rangle$ = '+r'{:.2f}'.format(mean(feh)),fontsize=30)  
 
-    # Sun overlap
-    clf_xyz = mixture.GaussianMixture(n_components=1, covariance_type='full')
-    clf_xyz.fit(array([x,y,z]).T)
-    lsun = clf_xyz.score_samples(Sun.reshape(-1,1).T)
-    xyz_meens = clf_xyz.means_
-    lmax = clf_xyz.score_samples(xyz_meens)
-    dL = -2*(lsun-lmax)
-    Psun = sqrt(2)*erfinv(chi2.cdf(dL,3))
-    plt.gcf().text(xlab,0.77,r'$P(\mathbf{x}_\odot)$ = '+'{:.1f}'.format(Psun[0])+r'$\sigma$',fontsize=30)
-
     # Choose model
     bics = array([0.0,0.0,0.0])
     bics[0] = clfa.bic(data)
@@ -470,6 +478,7 @@ def VelocityTriangle(Cand,vmin=-595.0,vmax=595.0,nfine=500,nbins_1D = 50,\
 
         covs = clfc.covariances_
         meens = clfc.means_
+    
         plt.gcf().text(xlab,0.705,r'$\bar{v}_r $ = '\
                        +'{:.1f}'.format(meens[0,0])\
                        +'$\pm$'+'{:.1f}'.format(sqrt(covs[0,0,0]))\
@@ -532,6 +541,14 @@ def VelocityTriangle(Cand,vmin=-595.0,vmax=595.0,nfine=500,nbins_1D = 50,\
 
         plt.gcf().text(xlab,0.74,r'{\bf Groups = 2}',fontsize=30,color=col_c) 
        
+    # Sun overlap
+    x_meens = meens[:,0:3]
+    x_covs = covs[:,0:3,0:3]
+    Psun = SunProb(x_meens,x_covs)
+    plt.gcf().text(xlab,0.77,r'$P(\mathbf{x}_\odot)$ = '+'{:.1f}'.format(amin(Psun))+r'$\sigma$',fontsize=30)
+
+    
+    
     plt.legend(fontsize=lblsize-5,frameon=False,bbox_to_anchor=(1.05, 2.0), loc=2, borderaxespad=0.)
 
     fig.savefig('../plots/stars/Vtriangle_'+name+'.pdf',bbox_inches='tight') 

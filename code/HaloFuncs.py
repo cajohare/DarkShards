@@ -171,9 +171,9 @@ def SpeedDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
         
         
         if SmoothCutoff:
-            vr = (v_max)*sqrt(1-C**2.0)*cos(P)
-            vphi = (v_max)*sqrt(1-C**2.0)*sin(P)
-            vz = (v_max)*C
+            vr = (v_max)*sqrt(1-C**2.0)*cos(P)+v_off[0]
+            vphi = (v_max)*sqrt(1-C**2.0)*sin(P)+v_off[1]
+            vz = (v_max)*C+v_off[2]
             V = sqrt(vr**2.0+vphi**2.0+vz**2.0)
             Fcorr = N*exp(-(vr**2.0/(2*sigr**2.0))\
                           -(vz**2.0/(2*sigz**2.0))\

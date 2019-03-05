@@ -96,7 +96,7 @@ def col_alpha(col,alpha=0.1):
             for (c1, c2) in zip(rgb, bg_rgb)]
 
 
-def RemovePhaseSpaceOutliers(x,y,z,U,V,W,z_th=6.0):
+def RemovePhaseSpaceOutliers(x,y,z,U,V,W,feh,z_th=6.0):
     # reduced points
     nstars = size(x)
     if nstars>5:
@@ -110,7 +110,8 @@ def RemovePhaseSpaceOutliers(x,y,z,U,V,W,z_th=6.0):
     U_red = U[ZSCORE<z_th]
     V_red = V[ZSCORE<z_th]
     W_red = W[ZSCORE<z_th]
-    return x_red,y_red,z_red,U_red,V_red,W_red
+    feh_red = feh[ZSCORE<z_th]
+    return x_red,y_red,z_red,U_red,V_red,W_red,feh_red
 
 
 
@@ -151,11 +152,11 @@ def FitStars(Cand,RemoveOutliers = False,z_th = 6.0):
 
     # Remove outliers if needed
     if RemoveOutliers:
-        x_red,y_red,z_red,vx_red,vy_red,vz_red = RemovePhaseSpaceOutliers(x,y,z,vx,vy,vz,z_th=z_th)
-        data = array([x_red,y_red,z_red,vx_red,vy_red,vz_red,feh]).T
+        x_red,y_red,z_red,vx_red,vy_red,vz_red,feh_red = RemovePhaseSpaceOutliers(x,y,z,vx,vy,vz,feh,z_th=z_th)
+        data = array([x_red,y_red,z_red,vx_red,vy_red,vz_red,feh_red]).T
+        nstars = size(data,0)   
     else:
         data = array([x,y,z,vx,vy,vz,feh]).T
-            
     
     # Set up three models
     clfa = mixture.GaussianMixture(n_components=1, covariance_type='diag')
@@ -169,23 +170,23 @@ def FitStars(Cand,RemoveOutliers = False,z_th = 6.0):
     
     # Calculate Bayesian information criterion
     bics = array([0.0,0.0,0.0])
-    bics[0] = clfa.bic(data)
-    bics[1] = clfb.bic(data)
-    bics[2] = clfc.bic(data)
+    bics[0] = clfa.aic(data)
+    bics[1] = clfb.aic(data)
+    bics[2] = clfc.aic(data)
 
     # Second check if bimodal distribution is overfitting
-    if argmin(bics)==2:
-        covs = clfc.covariances_
-        meens = clfc.means_
-        chck = 0
-        for k in range(3,6):
-            dsig = 3*sqrt(covs[0,k,k])+3*sqrt(covs[1,k,k])
-            dv = abs(meens[0,k]-meens[1,k])
-            if dv>dsig:
-                chck += 1
-            
-        if chck==0:
-            bics[1] = -10000.0
+    #if argmin(bics)==2:
+    #    covs = clfc.covariances_
+    #    meens = clfc.means_
+    #    chck = 0
+    #   for k in range(3,6):
+    #        dsig = 3*sqrt(covs[0,k,k])+3*sqrt(covs[1,k,k])
+    #        dv = abs(meens[0,k]-meens[1,k])
+    #        if dv>dsig:
+    #            chck += 1
+    #        
+    #    if chck==0:
+    #        bics[1] = -10000.0
                   
     if (argmin(bics)==0) or (argmin(bics)==1) or (nstars<10):
         covs = clfb.covariances_
@@ -439,23 +440,23 @@ def VelocityTriangle(Cand,vmin=-595.0,vmax=595.0,nfine=500,nbins_1D = 50,\
 
     # Choose model
     bics = array([0.0,0.0,0.0])
-    bics[0] = clfa.bic(data)
-    bics[1] = clfb.bic(data)
-    bics[2] = clfc.bic(data)
+    bics[0] = clfa.aic(data)
+    bics[1] = clfb.aic(data)
+    bics[2] = clfc.aic(data)
 
     # check if groups overlap and bimodal is overfitting
-    if argmin(bics)==2:
-        covs = clfc.covariances_
-        meens = clfc.means_
-        chck = 0
-        for k in range(0,3):
-            dsig = 3*sqrt(covs[0,k,k])+3*sqrt(covs[1,k,k])
-            dv = abs(meens[0,k]-meens[1,k])
-            if dv>dsig:
-                chck += 1
-            
-        if chck==0:
-            bics[1] = -10000.0
+    #if argmin(bics)==2:
+    #    covs = clfc.covariances_
+    #    meens = clfc.means_
+    #    chck = 0
+    #    for k in range(0,3):
+    #        dsig = 3*sqrt(covs[0,k,k])+3*sqrt(covs[1,k,k])
+    #        dv = abs(meens[0,k]-meens[1,k])
+    #        if dv>dsig:
+    #            chck += 1
+    #        
+    #    if chck==0:
+    #        bics[1] = -10000.0
                   
 
     label_a = '1 mode (diag $\Sigma$)'

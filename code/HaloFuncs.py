@@ -145,12 +145,14 @@ def SpeedDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
     sigz = sig3[2]
 
     beta = 1.0-(sigphi**2.0+sigz**2.0)/(2*sigr**2.0)
-    if beta>0.0:
-        N_esc = Nesc_Triaxial(sigr,sigphi,beta,v_esc)
-    elif beta==0.0:
-        N_esc = Nesc_Isotropic(sigr,v_esc)
-    else:
-        N_esc = 1.0
+    #if beta>0.0:
+    #    N_esc = Nesc_Triaxial(sigr,sigphi,beta,v_esc)
+    #elif beta==0.0:
+    #    N_esc = Nesc_Isotropic(sigr,v_esc)
+    #else:
+    N_esc = 1.0
+        
+    
         
     if not EscapeSpeed: 
         N_esc = 1.0

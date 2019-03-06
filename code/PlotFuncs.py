@@ -100,8 +100,7 @@ def RemovePhaseSpaceOutliers(x,y,z,U,V,W,feh,z_th=6.0):
     # reduced points
     nstars = size(x)
     if nstars>5:
-        ZSCORE = abs(zscore(z))+abs(zscore(x))+abs(zscore(y))\
-                +abs(zscore(U))+abs(zscore(V))+abs(zscore(W))
+        ZSCORE = abs(zscore(z))+abs(zscore(x))+abs(zscore(y))
     else:
         ZSCORE = (z_th-1)*ones(shape=nstars)    
     x_red = x[ZSCORE<z_th]
@@ -151,10 +150,10 @@ def FitStars(Cand,RemoveOutliers = False,z_th = 6.0):
     x,y,z = Cand.GalRecX,Cand.GalRecY,Cand.GalRecZ # positions
 
     # Remove outliers if needed
-    if RemoveOutliers:
+    if RemoveOutliers and (nstars>15):
         x_red,y_red,z_red,vx_red,vy_red,vz_red,feh_red = RemovePhaseSpaceOutliers(x,y,z,vx,vy,vz,feh,z_th=z_th)
         data = array([x_red,y_red,z_red,vx_red,vy_red,vz_red,feh_red]).T
-        nstars = size(data,0)   
+        nstars = size(x_red)   
     else:
         data = array([x,y,z,vx,vy,vz,feh]).T
     
@@ -170,23 +169,23 @@ def FitStars(Cand,RemoveOutliers = False,z_th = 6.0):
     
     # Calculate Bayesian information criterion
     bics = array([0.0,0.0,0.0])
-    bics[0] = clfa.aic(data)
-    bics[1] = clfb.aic(data)
-    bics[2] = clfc.aic(data)
+    bics[0] = clfa.bic(data)
+    bics[1] = clfb.bic(data)
+    bics[2] = clfc.bic(data)
 
     # Second check if bimodal distribution is overfitting
-    #if argmin(bics)==2:
-    #    covs = clfc.covariances_
-    #    meens = clfc.means_
-    #    chck = 0
-    #   for k in range(3,6):
-    #        dsig = 3*sqrt(covs[0,k,k])+3*sqrt(covs[1,k,k])
-    #        dv = abs(meens[0,k]-meens[1,k])
-    #        if dv>dsig:
-    #            chck += 1
-    #        
-    #    if chck==0:
-    #        bics[1] = -10000.0
+    if argmin(bics)==2:
+        covs = clfc.covariances_
+        meens = clfc.means_
+        chck = 0
+        for k in range(3,6):
+            dsig = 2*sqrt(covs[0,k,k])+2*sqrt(covs[1,k,k])
+            dv = abs(meens[0,k]-meens[1,k])
+            if dv>dsig:
+                chck += 1
+            
+        if chck==0:
+            bics[1] = -10000.0
                   
     if (argmin(bics)==0) or (argmin(bics)==1) or (nstars<10):
         covs = clfb.covariances_
@@ -194,24 +193,46 @@ def FitStars(Cand,RemoveOutliers = False,z_th = 6.0):
         fehs = array([meens[0,6],sqrt(covs[0,6,6])])
         pops = shape(data)[0]
         
+        x_meens = meens[:,0:3]
+        v_meens = meens[:,3:6]
+        x_covs = covs[:,0:3,0:3]
+        v_covs = covs[:,3:6,3:6]
+        
     else:
         covs = clfc.covariances_
         meens = clfc.means_
-        fehs = zeros(shape=(2,2))
-        fehs[0,:] = array([meens[0,6],sqrt(covs[0,6,6])])
-        fehs[1,:] = array([meens[1,6],sqrt(covs[1,6,6])])
-        
+   
         vv1 = meens[0,3:6]
         vv2 = meens[1,3:6]
         r1 = sqrt((data[:,3]-vv1[0])**2.0+(data[:,4]-vv1[1])**2.0+(data[:,5]-vv1[2])**2.0)
         r2 = sqrt((data[:,3]-vv2[0])**2.0+(data[:,4]-vv2[1])**2.0+(data[:,5]-vv2[2])**2.0)
-        pops = array([sum(r1<r2),sum(r2<r1)])
+        pops_both = array([sum(r1<r2),sum(r2<r1)])
+        if pops_both[0]<3.0:
+            data_red = data[r2<r1,:]
+            clf_red = mixture.GaussianMixture(n_components=1, covariance_type='full')
+            clf_red.fit(data_red)
+            covs = clf_red.covariances_
+            meens = clf_red.means_
+            pops = pops_both[1]
+            fehs = array([meens[0,6],sqrt(covs[0,6,6])])
+        elif pops_both[1]<3.0:
+            data_red = data[r1<r2,:]
+            clf_red = mixture.GaussianMixture(n_components=1, covariance_type='full')
+            clf_red.fit(data_red)
+            covs = clf_red.covariances_
+            meens = clf_red.means_
+            pops = pops_both[0]
+            fehs = array([meens[0,6],sqrt(covs[0,6,6])])
+        else:
+            fehs = zeros(shape=(2,2))
+            fehs[0,:] = array([meens[0,6],sqrt(covs[0,6,6])])
+            fehs[1,:] = array([meens[1,6],sqrt(covs[1,6,6])])
+            pops = pops_both
     
     x_meens = meens[:,0:3]
     v_meens = meens[:,3:6]
     x_covs = covs[:,0:3,0:3]
     v_covs = covs[:,3:6,3:6]
-    
     Psun = SunProb(x_meens,x_covs)
 
 
@@ -314,12 +335,13 @@ def VelocityTriangle(Cand,vmin=-595.0,vmax=595.0,nfine=500,nbins_1D = 50,\
     feh = Cand.feh
     vx,vy,vz = Cand.GalRVel,Cand.GalTVel,Cand.GalzVel
     x,y,z = Cand.GalRecX,Cand.GalRecY,Cand.GalRecZ
-    x_red,y_red,z_red,vx_red,vy_red,vz_red = RemovePhaseSpaceOutliers(x,y,z,vx,vy,vz,z_th=z_th)
+    x_red,y_red,z_red,vx_red,vy_red,vz_red,feh_red = RemovePhaseSpaceOutliers(x,y,z,vx,vy,vz,feh,z_th=z_th)
 
     # Remove outliers if needed
     if RemoveOutliers:
-        x_red,y_red,z_red,vx_red,vy_red,vz_red = RemovePhaseSpaceOutliers(x,y,z,vx,vy,vz,z_th=z_th)
-        data = array([vx_red,vy_red,vz_red,x_red,y_red,z_red,feh]).T
+        x_red,y_red,z_red,vx_red,vy_red,vz_red,feh_red = RemovePhaseSpaceOutliers(x,y,z,vx,vy,vz,feh,z_th=z_th)
+        data = array([vx_red,vy_red,vz_red,x_red,y_red,z_red,feh_red]).T
+        nstars = size(x_red)   
     else:
         data = array([vx,vy,vz,x,y,z,feh]).T
         
@@ -440,23 +462,23 @@ def VelocityTriangle(Cand,vmin=-595.0,vmax=595.0,nfine=500,nbins_1D = 50,\
 
     # Choose model
     bics = array([0.0,0.0,0.0])
-    bics[0] = clfa.aic(data)
-    bics[1] = clfb.aic(data)
-    bics[2] = clfc.aic(data)
-
+    bics[0] = clfa.bic(data)
+    bics[1] = clfb.bic(data)
+    bics[2] = clfc.bic(data)
+    print bics
     # check if groups overlap and bimodal is overfitting
-    #if argmin(bics)==2:
-    #    covs = clfc.covariances_
-    #    meens = clfc.means_
-    #    chck = 0
-    #    for k in range(0,3):
-    #        dsig = 3*sqrt(covs[0,k,k])+3*sqrt(covs[1,k,k])
-    #        dv = abs(meens[0,k]-meens[1,k])
-    #        if dv>dsig:
-    #            chck += 1
-    #        
-    #    if chck==0:
-    #        bics[1] = -10000.0
+    if argmin(bics)==2:
+        covs = clfc.covariances_
+        meens = clfc.means_
+        chck = 0
+        for k in range(0,3):
+            dsig = 2*sqrt(covs[0,k,k])+2*sqrt(covs[1,k,k])
+            dv = abs(meens[0,k]-meens[1,k])
+            if dv>dsig:
+                chck += 1
+            
+        if chck==0:
+            bics[1] = -10000.0
                   
 
     label_a = '1 mode (diag $\Sigma$)'
@@ -543,8 +565,8 @@ def VelocityTriangle(Cand,vmin=-595.0,vmax=595.0,nfine=500,nbins_1D = 50,\
         plt.gcf().text(xlab,0.74,r'{\bf Groups = 2}',fontsize=30,color=col_c) 
        
     # Sun overlap
-    x_meens = meens[:,0:3]
-    x_covs = covs[:,0:3,0:3]
+    x_meens = meens[:,3:6]
+    x_covs = covs[:,3:6,3:6]
     Psun = SunProb(x_meens,x_covs)
     plt.gcf().text(xlab,0.77,r'$P(\mathbf{x}_\odot)$ = '+'{:.1f}'.format(amin(Psun))+r'$\sigma$',fontsize=30)
 

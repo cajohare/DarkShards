@@ -168,25 +168,26 @@ def FitStars(Cand,RemoveOutliers = False,z_th = 6.0):
     clfb.fit(data)
     clfc.fit(data)
     
-    # Calculate Bayesian information criterion
+    # Choose model
     bics = array([0.0,0.0,0.0])
-    bics[0] = clfa.bic(data)
-    bics[1] = clfb.bic(data)
-    bics[2] = clfc.bic(data)
-
-    # Second check if bimodal distribution is overfitting
-    if argmin(bics)==2:
-        covs = clfc.covariances_
-        meens = clfc.means_
-        chck = 0
-        for k in range(3,6):
-            dsig = 2*sqrt(covs[0,k,k])+2*sqrt(covs[1,k,k])
-            dv = abs(meens[0,k]-meens[1,k])
-            if dv>dsig:
-                chck += 1
+    #bics[0] = clfa.bic(data)
+    #bics[1] = clfb.bic(data)
+    #bics[2] = clfc.bic(data)
+    # check if groups overlap and bimodal is overfitting
+    #if argmin(bics)==2:
+    covs = clfc.covariances_
+    meens = clfc.means_
+    chck = 0
+    for k in range(3,6):
+        dsig = 2.5*sqrt(covs[0,k,k])+2.5*sqrt(covs[1,k,k])
+        dv = abs(meens[0,k]-meens[1,k])
+        if dv>dsig:
+            chck += 1
             
-        if chck==0:
-            bics[1] = -10000.0
+    if chck==0:
+        bics[1] = -10000.0
+    else:
+        bics[2] = -10000.0
                   
     if (argmin(bics)==0) or (argmin(bics)==1) or (nstars<10):
         covs = clfb.covariances_
@@ -463,23 +464,24 @@ def VelocityTriangle(Cand,vmin=-595.0,vmax=595.0,nfine=500,nbins_1D = 50,\
 
     # Choose model
     bics = array([0.0,0.0,0.0])
-    bics[0] = clfa.bic(data)
-    bics[1] = clfb.bic(data)
-    bics[2] = clfc.bic(data)
-    print bics
+    #bics[0] = clfa.bic(data)
+    #bics[1] = clfb.bic(data)
+    #bics[2] = clfc.bic(data)
     # check if groups overlap and bimodal is overfitting
-    if argmin(bics)==2:
-        covs = clfc.covariances_
-        meens = clfc.means_
-        chck = 0
-        for k in range(0,3):
-            dsig = 2*sqrt(covs[0,k,k])+2*sqrt(covs[1,k,k])
-            dv = abs(meens[0,k]-meens[1,k])
-            if dv>dsig:
-                chck += 1
+    #if argmin(bics)==2:
+    covs = clfc.covariances_
+    meens = clfc.means_
+    chck = 0
+    for k in range(0,3):
+        dsig = 2.5*sqrt(covs[0,k,k])+2.5*sqrt(covs[1,k,k])
+        dv = abs(meens[0,k]-meens[1,k])
+        if dv>dsig:
+            chck += 1
             
-        if chck==0:
-            bics[1] = -10000.0
+    if chck==0:
+        bics[1] = -10000.0
+    else:
+        bics[2] = -10000.0
                   
 
     label_a = '1 mode (diag $\Sigma$)'
@@ -924,4 +926,61 @@ def Orbits(Cand,xlim=16.0,ylim=16.0,zlim=16.0,T_Myr=10.0):
     fig.savefig('../plots/stars/Orbits_'+name+'.pdf',bbox_inches='tight')
 
     return fig
+
+
+def StreamOrbit(Cand,nt=100,T_Myr=10.0,Moving=False):
+    Cand = Cand.reset_index()
+
+    nstars = size(Cand,0)
+
+    # orbits
+    kpc = units.kpc
+    kms = units.km/units.s
+    deg = units.deg
+    Gyr = units.Gyr
+
+    ts = linspace(0.0,T_Myr*units.Myr,nt/2)
+    t_tot = append(ts,-ts)
+    rsun = zeros(shape=(nstars,nt))
+
+    if Moving:
+        osun1 = Orbit(vxvv=[Sun[0]*kpc,0.0*kms,232.0*kms,0.0*kpc,0.0*kms,0.0*deg]).flip()
+        osun1.integrate(ts,MWPotential2014)
+        osun2 = Orbit(vxvv=[Sun[0]*kpc,0.0*kms,232.0*kms,0.0*kpc,0.0*kms,0.0*deg])
+        osun2.integrate(ts,MWPotential2014)
+        osun1x,osun1y,osun1z = osun1.x(ts),osun1.y(ts),osun1.z(ts)
+        osun2x,osun1y,osun1z = osun1.x(ts),osun1.y(ts),osun1.z(ts)
+    else:
+        osun1x,osun1y,osun1z = Sun[0],Sun[1],Sun[2]
+        osun2x,osun2y,osun2z = Sun[0],Sun[1],Sun[2]
+        
+    for i in range(0,nstars):
+        R = Cand.GalR[i]
+        vR = Cand.GalRVel[i]
+        vT = Cand.GalTVel[i]
+        z = Cand.Galz[i]
+        vz = Cand.GalzVel[i]
+        phi = Cand.Galphi[i]*180/pi
+        # -t
+        o1 = Orbit(vxvv=[R*kpc,vR*kms,vT*kms,z*kpc,vz*kms,phi*deg]).flip()
+        o1.integrate(ts,MWPotential2014)
+
+        # +t
+        o2 = Orbit(vxvv=[R*kpc,vR*kms,vT*kms,z*kpc,vz*kms,phi*deg])
+        o2.integrate(ts,MWPotential2014)
+
+  
+        rsun[i,0:nt/2] = flipud(sqrt((o1.x(ts)-osun1x)**2.0+(o1.y(ts)-osun1y)**2.0+(o1.z(ts)-osun1z)**2.0))
+        rsun[i,nt/2:] = (sqrt((o2.x(ts)-osun2x)**2.0+(o2.y(ts)-osun2y)**2.0+(o2.z(ts)-osun2z)**2.0))
+
+    sig_sun = sqrt(2)*erfinv(amin(sum(rsun>1.0,0))/(1.0*nstars))
+    rsun_sorted = sort(rsun,0)
+    rsun1 = rsun_sorted[int((1-0.95)*nstars),:]
+    rsun2 = rsun_sorted[int((1-0.68)*nstars),:]
+    rsun3 = rsun_sorted[int(0.68*nstars),:]
+    rsun4 = rsun_sorted[int(0.95*nstars),:]
+    orb_env = vstack([rsun1,rsun2,rsun3,rsun4])
+    t = linspace(-T_Myr,T_Myr,nt)
+    return orb_env,rsun,sig_sun,t
+
 

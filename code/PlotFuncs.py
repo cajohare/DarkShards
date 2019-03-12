@@ -67,6 +67,43 @@ def MyDoublePlot(xlab1,ylab1,xlab2,ylab2,wspace=0.25,lw=2.5,lfs=45,tfs=25,size_x
     return fig,ax1,ax2
 
 
+def MyTriplePlot(xlab1,ylab1,xlab2,ylab2,xlab3,ylab3,wspace=0.25,lw=2.5,lfs=45,tfs=25,size_x=20,size_y=7,Grid=False):
+    plt.rcParams['axes.linewidth'] = lw
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif',size=tfs)
+    
+    fig, axarr = plt.subplots(1, 3,figsize=(size_x,size_y))
+    gs = gridspec.GridSpec(1, 3)
+    gs.update(wspace=wspace)
+    ax1 = plt.subplot(gs[0])
+    ax2 = plt.subplot(gs[1])
+    ax3 = plt.subplot(gs[2])
+    
+    ax1.tick_params(which='major',direction='in',width=2,length=13,right=True,top=True,pad=7)
+    ax1.tick_params(which='minor',direction='in',width=1,length=10,right=True,top=True)
+    
+    ax2.tick_params(which='major',direction='in',width=2,length=13,right=True,top=True,pad=7)
+    ax2.tick_params(which='minor',direction='in',width=1,length=10,right=True,top=True)
+    
+    ax3.tick_params(which='major',direction='in',width=2,length=13,right=True,top=True,pad=7)
+    ax3.tick_params(which='minor',direction='in',width=1,length=10,right=True,top=True)
+    
+    ax1.set_xlabel(xlab1,fontsize=lfs)
+    ax1.set_ylabel(ylab1,fontsize=lfs) 
+    
+    ax2.set_xlabel(xlab2,fontsize=lfs)
+    ax2.set_ylabel(ylab2,fontsize=lfs) 
+    
+    ax3.set_xlabel(xlab3,fontsize=lfs)
+    ax3.set_ylabel(ylab3,fontsize=lfs) 
+    
+    if Grid:
+        ax1.grid()
+        ax2.grid()
+        ax3.grid()
+    return fig,ax1,ax2,ax3
+
+
 def in_hull(p, hull):
     if not isinstance(hull,Delaunay):
         hull = Delaunay(hull)

@@ -104,6 +104,13 @@ def MyTriplePlot(xlab1,ylab1,xlab2,ylab2,xlab3,ylab3,wspace=0.25,lw=2.5,lfs=45,t
     return fig,ax1,ax2,ax3
 
 
+def PointScatter(xin,yin):
+    dens = gaussian_kde(vstack([xin,yin]))(vstack([xin,yin]))
+    idx = dens.argsort()
+    x, y, dens = xin[idx], yin[idx], dens[idx]
+    return x,y,dens
+
+
 def in_hull(p, hull):
     if not isinstance(hull,Delaunay):
         hull = Delaunay(hull)

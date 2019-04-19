@@ -2,7 +2,7 @@ from numpy import *
 from numpy.random import *
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
-from mpl_toolkits.basemap import Basemap
+#from mpl_toolkits.basemap import Basemap
 import matplotlib.gridspec as gridspec
 from matplotlib import colors
 import pandas
@@ -993,7 +993,7 @@ def StreamOrbit(Cand,nt=100,T_Myr=10.0,Moving=False):
         osun2 = Orbit(vxvv=[Sun[0]*kpc,0.0*kms,232.0*kms,0.0*kpc,0.0*kms,0.0*deg])
         osun2.integrate(ts,MWPotential2014)
         osun1x,osun1y,osun1z = osun1.x(ts),osun1.y(ts),osun1.z(ts)
-        osun2x,osun1y,osun1z = osun1.x(ts),osun1.y(ts),osun1.z(ts)
+        osun2x,osun2y,osun2z = osun2.x(ts),osun2.y(ts),osun2.z(ts)
     else:
         osun1x,osun1y,osun1z = Sun[0],Sun[1],Sun[2]
         osun2x,osun2y,osun2z = Sun[0],Sun[1],Sun[2]

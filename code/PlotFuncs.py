@@ -23,7 +23,8 @@ from skimage import measure
 Sun = array([8.122,0.0,0.005])
 
 
-def MySquarePlot(xlab,ylab,lw=2.5,lfs=45,tfs=25,size_x=13,size_y=12,Grid=False):
+def MySquarePlot(xlab='',ylab='',\
+                 lw=2.5,lfs=45,tfs=25,size_x=13,size_y=12,Grid=False):
     plt.rcParams['axes.linewidth'] = lw
     plt.rc('text', usetex=True)
     plt.rc('font', family='serif',size=tfs)
@@ -40,7 +41,8 @@ def MySquarePlot(xlab,ylab,lw=2.5,lfs=45,tfs=25,size_x=13,size_y=12,Grid=False):
         ax.grid()
     return fig,ax
 
-def MyDoublePlot(xlab1,ylab1,xlab2,ylab2,wspace=0.25,lw=2.5,lfs=45,tfs=25,size_x=20,size_y=11,Grid=False):
+def MyDoublePlot(xlab1='',ylab1='',xlab2='',ylab2='',\
+                 wspace=0.25,lw=2.5,lfs=45,tfs=25,size_x=20,size_y=11,Grid=False):
     plt.rcParams['axes.linewidth'] = lw
     plt.rc('text', usetex=True)
     plt.rc('font', family='serif',size=tfs)
@@ -67,7 +69,8 @@ def MyDoublePlot(xlab1,ylab1,xlab2,ylab2,wspace=0.25,lw=2.5,lfs=45,tfs=25,size_x
     return fig,ax1,ax2
 
 
-def MyTriplePlot(xlab1,ylab1,xlab2,ylab2,xlab3,ylab3,wspace=0.25,lw=2.5,lfs=45,tfs=25,size_x=20,size_y=7,Grid=False):
+def MyTriplePlot(xlab1='',ylab1='',xlab2='',ylab2='',xlab3='',ylab3='',\
+                 wspace=0.25,lw=2.5,lfs=45,tfs=25,size_x=20,size_y=7,Grid=False):
     plt.rcParams['axes.linewidth'] = lw
     plt.rc('text', usetex=True)
     plt.rc('font', family='serif',size=tfs)

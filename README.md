@@ -39,7 +39,7 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 Here is each figure in the paper in order
 
 ## Fig. X
-<img src="plots/plots_png/ShardsFlux.png" width="480" height="400">
+<img src="plots/plots_png/ShardsFlux.png" width="900" height="400">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/plot_Directional.ipynb)
 

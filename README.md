@@ -8,6 +8,10 @@ This repository contains the code, data and notebooks for (one hopes) reproducin
 
 Please contact me at ciaran.aj.ohare@gmail.com if you want to winge about why something doesn't work.
 
+
+<img src="data.gif" width="600" height="400">
+
+
 ## Contents
 
 The code, plots, datas, etc. are sorted as follows:

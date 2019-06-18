@@ -1,8 +1,9 @@
 from numpy import pi, sqrt, exp, zeros, size, shape, linspace, meshgrid, cos, sin
-from numpy import trapz, arange, array, flipud, interp, inf
+from numpy import trapz, arange, array, flipud, interp, inf, isnan
 from scipy.integrate import cumtrapz
 from numpy.linalg import norm
 from scipy.special import erf, erfi
+from scipy.stats import norm
 import LabFuncs
 import Params
 
@@ -22,6 +23,24 @@ for i in range(0,npix):
     x_pix[i,:] = hp.pix2vec(nside, i)
 
 
+#==============================================================================#
+def ShardsWeights(names,pops,Psun):
+    weights = norm.pdf(Psun,loc=0.0,scale=1.0)/norm.pdf(0.0,loc=0.0,scale=1.0)
+    n = size(pops)
+    w = zeros(shape=n)
+    w = pops*weights
+
+    for idi in ['S1','S2','R','Ca','N']: 
+        mask1 = zeros(shape=n)==1
+        for i in range(0,n):
+            mask1[i] = names[i].startswith(idi)
+        w[mask1] = w[mask1]/sum(w[mask1])
+
+    w /= 5.0
+
+    return w
+#==============================================================================#
+
 
 #==============================================================================#
 # Normalisation constants
@@ -32,7 +51,7 @@ def Nesc_Triaxial(sigr,sigphi,beta,v_esc):
     N_esc = erf(v_esc/(sqrt(2.0)*sigr)) - sqrt((1.0-beta)/beta)\
             *exp(-v_esc**2.0/(2.0*sigphi**2.0))\
             *erfi(v_esc/(sqrt(2)*sigr)*sqrt(beta/(1-beta)))
-    if (abs(N_esc)==inf):
+    if (abs(N_esc)==inf) or isnan(N_esc):
         N_esc = 1.0
     return N_esc
 #==============================================================================#
@@ -96,7 +115,7 @@ def VelocityDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
 # Speed distributions
 
 # Resolution of integral over velocities:
-n = 51
+n = 101
 dth = 2.0/(n-1.0)
 dph = 2*pi/(2*n*1.0)
 cvals = arange(-1.0,1.0,dth)
@@ -113,7 +132,14 @@ def SpeedDist_Isotropic(v,day,v_LSR=233.0,sig=164.75,v_esc=528.0,\
         *(exp(-(v**2.0+v_e**2.0-2.0*v*v_e)/(2*sig**2.0))\
         -exp(-(v**2.0+v_e**2.0+2.0*v*v_e)/(2*sig**2.0)))\
         *((v)<(v_esc+v_e))
-    
+    f1 = (1.0/(N_esc*sqrt(2*pi)))*(v/(v_e*sig))\
+        *(exp(-(v**2.0+v_e**2.0-2.0*v*v_e)/(2*sig**2.0))\
+        -exp(-(v**2.0+v_e**2.0+2.0*v*v_e)/(2*sig**2.0)))
+    f2 = (1.0/(N_esc*sqrt(2*pi)))*(v/(v_e*sig))\
+                    *(exp(-(v**2.0+v_e**2.0-2.0*v*v_e)/(2*sig**2.0))\
+                  -(2/sqrt(pi))*exp(-v_esc**2.0/(2*sig**2.0)))
+    fv1[v<(v_esc-v_e)] = f1[v<(v_esc-v_e)]
+    fv1[v>(v_esc-v_e)] = f2[v>(v_esc-v_e)]
     fv1 /= trapz(fv1,v)
     
     if not EscapeSpeed: 
@@ -192,7 +218,7 @@ def SpeedDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
             
             F  = N*exp(-(vr**2.0/(2*sigr**2.0))\
                        -(vz**2.0/(2*sigz**2.0))\
-                       -(vphi**2.0/(2*sigphi**2.0)))*(V<v_max)
+                       -(vphi**2.0/(2*sigphi**2.0)))*(V<v_esc)
             
             F = F-Fcorr
             fv1[i] = (v1**2.0)*dth*dph*sum(sum(F))
@@ -225,7 +251,7 @@ def SpeedDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
             V = sqrt(vr**2.0+vphi**2.0+vz**2.0)
             F  = N*exp(-(vr**2.0/(2*sigr**2.0))\
                        -(vz**2.0/(2*sigz**2.0))\
-                       -(vphi**2.0/(2*sigphi**2.0)))*(V<(v_esc+vv_e))
+                       -(vphi**2.0/(2*sigphi**2.0)))*(V<(v_esc))
             F = F-Fcorr
             fv1[i] = (v1**2.0)*dth*dph*sum(sum(F))
             
@@ -268,7 +294,7 @@ def SpeedDist_Triaxial_alt(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
 
             F  = N*exp(-(vr**2.0/(2*sigr**2.0))\
                        -(vz**2.0/(2*sigz**2.0))\
-                       -(vphi**2.0/(2*sigphi**2.0)))*(V<(v_esc+vv_e))
+                       -(vphi**2.0/(2*sigphi**2.0)))*(V<(v_esc))
             fv1[i] = (v1**2.0)*sum(F)*dpix
     else:
         
@@ -285,7 +311,7 @@ def SpeedDist_Triaxial_alt(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
             V = sqrt(vr**2.0+vphi**2.0+vz**2.0)
             F  = N*exp(-(vr**2.0/(2*sigr**2.0))\
                        -(vz**2.0/(2*sigz**2.0))\
-                       -(vphi**2.0/(2*sigphi**2.0)))*(V<(v_esc+vv_e))
+                       -(vphi**2.0/(2*sigphi**2.0)))*(V<(v_esc))
             fv1[i] = (v1**2.0)*sum(F)*dpix
             
     fv1[v>(v_esc+vv_e)] = 0.0

@@ -14,6 +14,8 @@ from scipy.stats import zscore,chi2,multivariate_normal
 from sklearn import mixture
 from scipy.special import erfinv
 from scipy.stats import gaussian_kde
+import cartopy.crs as ccrs
+import matplotlib.ticker as mticker
 
 # Galpy
 from galpy.orbit import Orbit
@@ -23,6 +25,18 @@ from astropy import units
 from skimage import measure
 
 Sun = array([8.122,0.0,0.005])
+Sun_cyl = array([Sun[0],0.0,Sun[2]])
+
+from astropy import units as u
+from astropy.coordinates import SkyCoord, get_constellation
+
+cygnus_stars = array(['β','η','γ','α','γ','δ','ι','κ','ι','δ','γ','ε','ζ'])
+#cygnus_stars = ['Deneb','gamma cyg']
+nst = size(cygnus_stars)
+cyg = zeros(shape=(nst,2))
+for i in range(0,nst):
+    c = SkyCoord.from_name(cygnus_stars[i]+' Cyg').galactic
+    cyg[i,:] = array([c.l.degree,c.b.degree])
 
 
 def reverse_colourmap(cmap, name = 'my_cmap_r'):
@@ -147,6 +161,42 @@ def MyTriplePlot(xlab1='',ylab1='',xlab2='',ylab2='',xlab3='',ylab3='',\
     return fig,ax1,ax2,ax3
 
 
+
+def MollweideMap(ax,TH,PH,fv0,cmin,cmax,nlevels,cmap,tfs,PlotCygnus=False,gridlinecolor='k',GalacticPlane=False):
+    plt.rcParams['axes.linewidth'] = 3
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif',size=15)
+
+    
+    ax.contourf(rad2deg(PH), rad2deg(TH), fv0,nlevels,transform=ccrs.PlateCarree(),cmap=cmap,vmin=cmin,vmax=cmax)
+    gl = ax.gridlines(color=gridlinecolor,linewidth=1.5, linestyle='--',alpha=0.5)
+    gl.ylocator = mticker.FixedLocator([-90,-60, -30, 0, 30, 60,90])
+    ax.outline_patch.set_linewidth(3)
+   
+
+    tx = array([r'$-60^\circ$',r'$-30^\circ$',r'$0^\circ$',r'$+30^\circ$',r'$+60^\circ$']) 
+    xtx = array([0.17,0.05,-0.01,0.05,0.18])
+    ytx = array([0.08,0.26,0.49,0.72,0.9])
+    
+    for i in range(0,size(xtx)):
+        plt.text(xtx[i],ytx[i],tx[i],transform=ax.transAxes,horizontalalignment='right',verticalalignment='center',fontsize=tfs)
+
+
+    if PlotCygnus==True:
+        ax.plot(-cyg[0:4,0],cyg[0:4,1],'-',color='crimson',transform=ccrs.PlateCarree())
+        ax.plot(-cyg[4:,0],cyg[4:,1],'-',color='crimson',transform=ccrs.PlateCarree())
+        ax.plot(-cyg[:,0],cyg[:,1],'.',color='k',ms=5,transform=ccrs.PlateCarree())
+
+    if GalacticPlane==True:
+        ax.plot([-181,181],[0,0],'-',color=gridlinecolor,lw=1.5,transform=ccrs.PlateCarree())
+        ax.text(125,4,'Galactic',color=gridlinecolor,transform=ccrs.PlateCarree(),fontsize=int(tfs*0.8))
+        ax.text(135,-10,'plane',color=gridlinecolor,transform=ccrs.PlateCarree(),fontsize=int(tfs*0.8))
+    return
+
+
+
+
+
 def PointScatter(xin,yin):
     dens = gaussian_kde(vstack([xin,yin]))(vstack([xin,yin]))
     idx = dens.argsort()
@@ -226,113 +276,6 @@ def SunProb(x_meens,x_covs):
     return Psun
     
     
-    
-
-def FitStars(Cand,RemoveOutliers = False,z_th = 6.0):
-
-    # Get data
-    name = Cand.group_id.unique()[0]
-    nstars = size(Cand,0)
-    feh = Cand.feh # metallicity
-    vx,vy,vz = Cand.GalRVel,Cand.GalTVel,Cand.GalzVel # velocities
-    x,y,z = Cand.GalRecX,Cand.GalRecY,Cand.GalRecZ # positions
-
-    # Remove outliers if needed
-    if RemoveOutliers and (nstars>15):
-        x_red,y_red,z_red,vx_red,vy_red,vz_red,feh_red = RemovePhaseSpaceOutliers(x,y,z,vx,vy,vz,feh,z_th=z_th)
-        data = array([x_red,y_red,z_red,vx_red,vy_red,vz_red,feh_red]).T
-        nstars = size(x_red)   
-    else:
-        data = array([x,y,z,vx,vy,vz,feh]).T
-    
-    # Set up three models
-    clfa = mixture.GaussianMixture(n_components=1, covariance_type='diag')
-    clfb = mixture.GaussianMixture(n_components=1, covariance_type='full')
-    clfc = mixture.GaussianMixture(n_components=2, covariance_type='full')
-
-    # Fit data to each
-    clfa.fit(data)
-    clfb.fit(data)
-    clfc.fit(data)
-    
-    # Choose model
-    bics = array([0.0,0.0,0.0])
-    #bics[0] = clfa.bic(data)
-    #bics[1] = clfb.bic(data)
-    #bics[2] = clfc.bic(data)
-    # check if groups overlap and bimodal is overfitting
-    #if argmin(bics)==2:
-    covs = clfc.covariances_
-    meens = clfc.means_
-    chck = 0
-    for k in range(3,6):
-        dsig = 2.5*sqrt(covs[0,k,k])+2.5*sqrt(covs[1,k,k])
-        dv = abs(meens[0,k]-meens[1,k])
-        if dv>dsig:
-            chck += 1
-            
-    if chck==0:
-        bics[1] = -10000.0
-    else:
-        bics[2] = -10000.0
-                  
-    if (argmin(bics)==0) or (argmin(bics)==1) or (nstars<10):
-        covs = clfb.covariances_
-        meens = clfb.means_
-        fehs = array([meens[0,6],sqrt(covs[0,6,6])])
-        pops = shape(data)[0]
-        
-        x_meens = meens[:,0:3]
-        v_meens = meens[:,3:6]
-        x_covs = covs[:,0:3,0:3]
-        v_covs = covs[:,3:6,3:6]
-        
-    else:
-        covs = clfc.covariances_
-        meens = clfc.means_
-   
-        vv1 = meens[0,3:6]
-        vv2 = meens[1,3:6]
-        r1 = sqrt((data[:,3]-vv1[0])**2.0+(data[:,4]-vv1[1])**2.0+(data[:,5]-vv1[2])**2.0)
-        r2 = sqrt((data[:,3]-vv2[0])**2.0+(data[:,4]-vv2[1])**2.0+(data[:,5]-vv2[2])**2.0)
-        pops_both = array([sum(r1<r2),sum(r2<r1)])
-        if pops_both[0]<3.0:
-            data_red = data[r2<r1,:]
-            clf_red = mixture.GaussianMixture(n_components=1, covariance_type='full')
-            clf_red.fit(data_red)
-            covs = clf_red.covariances_
-            meens = clf_red.means_
-            pops = pops_both[1]
-            fehs = array([meens[0,6],sqrt(covs[0,6,6])])
-        elif pops_both[1]<3.0:
-            data_red = data[r1<r2,:]
-            clf_red = mixture.GaussianMixture(n_components=1, covariance_type='full')
-            clf_red.fit(data_red)
-            covs = clf_red.covariances_
-            meens = clf_red.means_
-            pops = pops_both[0]
-            fehs = array([meens[0,6],sqrt(covs[0,6,6])])
-        else:
-            fehs = zeros(shape=(2,2))
-            fehs[0,:] = array([meens[0,6],sqrt(covs[0,6,6])])
-            fehs[1,:] = array([meens[1,6],sqrt(covs[1,6,6])])
-            pops = pops_both
-    
-    x_meens = meens[:,0:3]
-    v_meens = meens[:,3:6]
-    x_covs = covs[:,0:3,0:3]
-    v_covs = covs[:,3:6,3:6]
-    Psun = SunProb(x_meens,x_covs)
-
-
-    return x_meens,x_covs,v_meens,v_covs,fehs,pops,Psun
-
-
-
-# see http://www-biba.inrialpes.fr/Jaynes/cappe1.pdf
-
-########
-
 def fv_1D(vfine,clf,i):
     covs = clf.covariances_
     meens = clf.means_
@@ -367,6 +310,7 @@ def fv_1D(vfine,clf,i):
 
 
 def fv_2D(V1,V2,clf,i,j):
+    # see http://www-biba.inrialpes.fr/Jaynes/cappe1.pdf
     covs = clf.covariances_
     meens = clf.means_
     ws = clf.weights_
@@ -401,47 +345,199 @@ def fv_2D(V1,V2,clf,i,j):
     fv = fv-amax(fv)
     return fv
 
+
+def FitStars(Cand,RemoveOutliers = False,z_th = 6.0):
+    # Get data
+    name = Cand.group_id.unique()[0]
+    nstars = size(Cand,0)
+    feh = Cand.feh # metallicity
+    vx,vy,vz = Cand.GalRVel,Cand.GalTVel,Cand.GalzVel # velocities
+    x,y,z = Cand.GalRecX,Cand.GalRecY,Cand.GalRecZ # positions
+    #x,y,z = Cand.GalR,Cand.Galphi,Cand.Galz # positions
+
+
+    # Remove outliers if needed
+    if RemoveOutliers and (nstars>15):
+        x_red,y_red,z_red,vx_red,vy_red,vz_red,feh_red = RemovePhaseSpaceOutliers(x,y,z,vx,vy,vz,feh,z_th=z_th)
+        data = array([x_red,y_red,z_red,vx_red,vy_red,vz_red,feh_red]).T
+        nstars = size(x_red)  
+    else:
+        data = array([x,y,z,vx,vy,vz,feh]).T
+
+    
+    # Set up three models
+    clfa = mixture.GaussianMixture(n_components=1, covariance_type='diag')
+    clfb = mixture.GaussianMixture(n_components=1, covariance_type='full')
+    clfc = mixture.GaussianMixture(n_components=2, covariance_type='full')
+
+    # Fit data to each
+    clfa.fit(data)
+    clfb.fit(data)
+    clfc.fit(data)  
+    return data,clfa,clfb,clfc
+
+def ResampleLocalStars(clf,Psun,v_meens,v_covs):
+     # Local stars
+    dataf = clf.sample(5e6)
+    probsf = clf.predict_proba(dataf[0][:,:])
+    distf = sqrt((Sun[0]-dataf[0][:,0])**2.0+(Sun[1]-dataf[0][:,1])**2.0+(Sun[2]-dataf[0][:,2])**2.0)
+
+    #xf = dataf[0][:,0]*cos(dataf[0][:,1])
+    #yf = dataf[0][:,0]*sin(dataf[0][:,1])
+    #zf = dataf[0][:,2]
+    #distf = sqrt((Sun_cyl[0]-xf)**2.0+(Sun_cyl[1]-yf)**2.0+(Sun_cyl[2]-zf)**2.0)
+    
+    
+    if size(Psun)>1:
+        probs = Psun
+    else:
+        probs = array([Psun])
+        
+    i = 0
+    v_meens1 = zeros(shape=shape(v_meens))
+    v_covs1 = zeros(shape=shape(v_covs))
+    for psun in probs:
+        if psun<1.2:
+            mask = (distf<1.0)*(argmax(probsf,axis=1)==i)
+            vxf = dataf[0][mask,3]
+            vyf = dataf[0][mask,4]
+            vzf = dataf[0][mask,5]
+            #hx,vb = histogram(vxf,range=[vmin,vmax],bins=nbins_1D,normed=True)
+            #hy,_  = histogram(vyf,range=[vmin,vmax],bins=nbins_1D,normed=True)
+            #hz,_  = histogram(vzf,range=[vmin,vmax],bins=nbins_1D,normed=True)
+            #vc = (vb[0:-1]+vb[1:])/2.0
+            #ax_x.plot(vc,hx,'y-',lw=3)
+            #ax_y.plot(vc,hy,'y-',lw=3)
+            #ax_z.plot(vc,hz,'y-',lw=3)
+            #print(i,'vx = ',mean(vxf),' ± ',std(vxf))
+            #print(i,'vy = ',mean(vyf),' ± ',std(vyf))
+            #print(i,'vz = ',mean(vzf),' ± ',std(vzf))
+            v_meens1[i,:] = array([mean(vxf),mean(vyf),mean(vzf)])
+            v_covs1[i,:,:] = cov(vstack((vxf,vyf,vzf)))
+            if sum(v_meens1[i,:])==nan or sum(v_covs1[i,:,:])==nan:
+                v_meens1[i,:] = v_meens[i,:]
+                v_covs1[i,:,:] = v_covs[i,:,:]
+        else:
+            v_meens1[i,:] = v_meens[i,:]
+            v_covs1[i,:,:] = v_covs[i,:,:]
+        i += 1
+    return v_meens1,v_covs1
+    
+def CountWraps(data,clfb,clfc):
+    nstars = size(data,0)
+    bics = array([0.0,0.0,0.0])
+    #bics[0] = clfa.bic(data)
+    #bics[1] = clfb.bic(data)
+    #bics[2] = clfc.bic(data)
+    # check if groups overlap and bimodal is overfitting
+    #if argmin(bics)==2:
+    covs = clfc.covariances_
+    meens = clfc.means_
+    chck = 0
+    for k in range(3,6):
+        dsig = 2.5*sqrt(covs[0,k,k])+2.5*sqrt(covs[1,k,k])
+        dv = abs(meens[0,k]-meens[1,k])
+        if dv>dsig:
+            chck += 1
+            
+    if chck==0:
+        bics[1] = -10000.0
+    else:
+        bics[2] = -10000.0
+                  
+    if (argmin(bics)==0) or (argmin(bics)==1) or (nstars<10):
+        covs = clfb.covariances_
+        meens = clfb.means_
+        fehs = array([meens[0,6],sqrt(covs[0,6,6])])
+        pops = shape(data)[0]
+        
+        x_meens = meens[:,0:3]
+        x_covs = covs[:,0:3,0:3]
+        Psun = SunProb(x_meens,x_covs)
+        v_meens,v_covs = ResampleLocalStars(clfb,Psun,meens[:,3:6],covs[:,3:6,3:6])
+        
+    else:
+        covs = clfc.covariances_
+        meens = clfc.means_
+   
+        vv1 = meens[0,3:6]
+        vv2 = meens[1,3:6]
+        r1 = sqrt((data[:,3]-vv1[0])**2.0+(data[:,4]-vv1[1])**2.0+(data[:,5]-vv1[2])**2.0)
+        r2 = sqrt((data[:,3]-vv2[0])**2.0+(data[:,4]-vv2[1])**2.0+(data[:,5]-vv2[2])**2.0)
+        pops_both = array([sum(r1<r2),sum(r2<r1)])
+        if pops_both[0]<3.0:
+            data_red = data[r2<r1,:]
+            clf_red = mixture.GaussianMixture(n_components=1, covariance_type='full')
+            clf_red.fit(data_red)
+            covs = clf_red.covariances_
+            meens = clf_red.means_
+            pops = pops_both[1]
+            fehs = array([meens[0,6],sqrt(covs[0,6,6])])
+            x_meens = meens[:,0:3]
+            x_covs = covs[:,0:3,0:3]
+            Psun = SunProb(x_meens,x_covs)
+            v_meens,v_covs = ResampleLocalStars(clfc,Psun,meens[:,3:6],covs[:,3:6,3:6])
+        elif pops_both[1]<3.0:
+            data_red = data[r1<r2,:]
+            clf_red = mixture.GaussianMixture(n_components=1, covariance_type='full')
+            clf_red.fit(data_red)
+            covs = clf_red.covariances_
+            meens = clf_red.means_
+            pops = pops_both[0]
+            fehs = array([meens[0,6],sqrt(covs[0,6,6])])
+            x_meens = meens[:,0:3]
+            x_covs = covs[:,0:3,0:3]
+            Psun = SunProb(x_meens,x_covs)
+            v_meens,v_covs = ResampleLocalStars(clfc,Psun,meens[:,3:6],covs[:,3:6,3:6])
+        else:
+            fehs = zeros(shape=(2,2))
+            fehs[0,:] = array([meens[0,6],sqrt(covs[0,6,6])])
+            fehs[1,:] = array([meens[1,6],sqrt(covs[1,6,6])])
+            pops = pops_both  
+            x_meens = meens[:,0:3]
+            x_covs = covs[:,0:3,0:3]
+            Psun = SunProb(x_meens,x_covs)
+            v_meens,v_covs = ResampleLocalStars(clfc,Psun,meens[:,3:6],covs[:,3:6,3:6])
+    if sum(v_meens)==nan or sum(v_covs)==nan:
+        v_meens[i,:] = meens[:,3:6]
+        v_covs[i,:,:] = covs[:,3:6,3:6]
+    return x_meens,x_covs,v_meens,v_covs,fehs,pops,Psun
+
+
 def VelocityTriangle(Cand,vmin=-595.0,vmax=595.0,nfine=500,nbins_1D = 50,\
                             levels=[-6.2,-2.3,0],\
                             tit_fontsize=30,\
                             z_th = 6.0,\
                             RemoveOutliers = False,\
                             cmap=cm.Greens,\
-                            col_hist='ForestGreen',\
-                            colp = 'ForestGreen',\
-                            col_a = 'tomato',\
-                            col_b = 'purple',\
-                            col_c = 'dodgerblue',\
+                            col_hist='mediumseagreen',\
+                            colp = 'mediumseagreen',\
+                            col_a = 'purple',\
+                            col_b = 'tomato',\
+                            col_c = 'mediumblue',\
                             point_size = 8,\
                             lblsize = 31,\
                             xlblsize = 35,\
-                            def_alph = 0.2):
+                            def_alph = 0.2,\
+                            SaveFigure = True,\
+                            PlotFullSample=False):
 
     
     ######
     name = Cand.group_id.unique()[0]
     nstars = size(Cand,0)
-    feh = Cand.feh
     vx,vy,vz = Cand.GalRVel,Cand.GalTVel,Cand.GalzVel
     x,y,z = Cand.GalRecX,Cand.GalRecY,Cand.GalRecZ
-    x_red,y_red,z_red,vx_red,vy_red,vz_red,feh_red = RemovePhaseSpaceOutliers(x,y,z,vx,vy,vz,feh,z_th=z_th)
+    feh = Cand.feh
+    x_red,y_red,z_red,vx_red,vy_red,vz_red,feh_red = RemovePhaseSpaceOutliers(x,y,z,vx,vy,vz,feh,z_th=6)
 
-    # Remove outliers if needed
-    if RemoveOutliers:
-        x_red,y_red,z_red,vx_red,vy_red,vz_red,feh_red = RemovePhaseSpaceOutliers(x,y,z,vx,vy,vz,feh,z_th=z_th)
-        data = array([vx_red,vy_red,vz_red,x_red,y_red,z_red,feh_red]).T
-        nstars = size(x_red)   
-    else:
-        data = array([vx,vy,vz,x,y,z,feh]).T
-        
-    clfa = mixture.GaussianMixture(n_components=1, covariance_type='diag')
-    clfb = mixture.GaussianMixture(n_components=1, covariance_type='full')
-    clfc = mixture.GaussianMixture(n_components=2, covariance_type='full')
 
-    clfa.fit(data)
-    clfb.fit(data)
-    clfc.fit(data)
-   
+    # Fit stars
+    data,clfa,clfb,clfc = FitStars(Cand,RemoveOutliers=RemoveOutliers,z_th=z_th)
+
+    # Choose Model
+    x_meens,x_covs,v_meens,v_covs,fehs,pops,Psun = CountWraps(data,clfb,clfc)
+    
     vfine = linspace(vmin,vmax,nfine)
     V1,V2 = meshgrid(vfine,vfine)
 
@@ -467,55 +563,50 @@ def VelocityTriangle(Cand,vmin=-595.0,vmax=595.0,nfine=500,nbins_1D = 50,\
 
     # 1D plots
     plt.sca(ax_x)
-    ax_x.hist(vx,range=[vmin,vmax],bins=nbins_1D,color=col_hist,linewidth=3,alpha=def_alph,normed=1)
-    plt.hist(vx,range=[vmin,vmax],bins=nbins_1D,color=col_hist,linewidth=3,histtype='step',normed=1)
-    plt.plot(vfine,fv_1D(vfine,clfa,0),'-',linewidth=5,color=col_a)
-    plt.plot(vfine,fv_1D(vfine,clfb,0),'-',linewidth=3,color=col_b)
-    plt.plot(vfine,fv_1D(vfine,clfc,0),'-',linewidth=3,color=col_c)
+    ax_x.hist(vx,range=[vmin,vmax],bins=nbins_1D,color=col_hist,linewidth=3,alpha=def_alph,density=True,stacked=True)
+    plt.hist(vx,range=[vmin,vmax],bins=nbins_1D,color=col_hist,linewidth=3,histtype='step',density=True,stacked=True)
+    plt.plot(vfine,fv_1D(vfine,clfb,3),'-',linewidth=3,color=col_b)
+    plt.plot(vfine,fv_1D(vfine,clfc,3),'-',linewidth=3,color=col_c)
     plt.ylabel(r'$v_r$ [km s$^{-1}$]',fontsize=xlblsize)
 
     plt.sca(ax_y)
-    ax_y.hist(vy,range=[vmin,vmax],bins=nbins_1D,color=col_hist,linewidth=3,alpha=def_alph,normed=1)
-    plt.hist(vy,range=[vmin,vmax],bins=nbins_1D,color=col_hist,linewidth=3,histtype='step',normed=1)
-    plt.plot(vfine,fv_1D(vfine,clfa,1),'-',linewidth=5,color=col_a)
-    plt.plot(vfine,fv_1D(vfine,clfb,1),'-',linewidth=3,color=col_b)
-    plt.plot(vfine,fv_1D(vfine,clfc,1),'-',linewidth=3,color=col_c)
+    ax_y.hist(vy,range=[vmin,vmax],bins=nbins_1D,color=col_hist,linewidth=3,alpha=def_alph,density=True,stacked=True)
+    plt.hist(vy,range=[vmin,vmax],bins=nbins_1D,color=col_hist,linewidth=3,histtype='step',density=True,stacked=True)
+    plt.plot(vfine,fv_1D(vfine,clfb,4),'-',linewidth=3,color=col_b)
+    plt.plot(vfine,fv_1D(vfine,clfc,4),'-',linewidth=3,color=col_c)
 
     plt.sca(ax_z)
-    ax_z.hist(vz,range=[vmin,vmax],bins=nbins_1D,color=col_hist,linewidth=3,alpha=def_alph,normed=1)
-    plt.hist(vz,range=[vmin,vmax],bins=nbins_1D,color=col_hist,linewidth=3,histtype='step',normed=1)
-    plt.plot(vfine,fv_1D(vfine,clfa,2),'-',linewidth=5,color=col_a)
-    plt.plot(vfine,fv_1D(vfine,clfb,2),'-',linewidth=3,color=col_b)
-    plt.plot(vfine,fv_1D(vfine,clfc,2),'-',linewidth=3,color=col_c)
+    ax_z.hist(vz,range=[vmin,vmax],bins=nbins_1D,color=col_hist,linewidth=3,alpha=def_alph,density=True,stacked=True)
+    plt.hist(vz,range=[vmin,vmax],bins=nbins_1D,color=col_hist,linewidth=3,histtype='step',density=True,stacked=True)
+    plt.plot(vfine,fv_1D(vfine,clfb,5),'-',linewidth=3,color=col_b)
+    plt.plot(vfine,fv_1D(vfine,clfc,5),'-',linewidth=3,color=col_c)
     plt.xlabel(r'$v_z$ [km s$^{-1}$]',fontsize=xlblsize)
 
 
     # 2D plots
     plt.sca(ax_yx)
     ax_yx.plot(vx_red,vy_red,'o',markersize=point_size,markerfacecolor=colp,markeredgecolor=colp,label='Stars')
-    ax_yx.plot(vx,vy,'o',markersize=point_size+3,markerfacecolor='none',markeredgecolor=colp,label='Outliers')
-    ax_yx.contour(vfine,vfine,fv_2D(V1,V2,clfa,0,1),levels=levels,colors=col_a,linewidths=3,linestyles='solid')
-    ax_yx.contour(vfine,vfine,fv_2D(V1,V2,clfb,0,1),levels=levels,colors=col_b,linewidths=3,linestyles='solid')
-    ax_yx.contour(vfine,vfine,fv_2D(V1,V2,clfc,0,1),levels=levels,colors=col_c,linewidths=3,linestyles='solid')
+    ax_yx.plot(vx,vy,'o',markersize=point_size,markerfacecolor='none',markeredgecolor=colp,label='Outliers')
+    ax_yx.contour(vfine,vfine,fv_2D(V1,V2,clfb,3,4),levels=levels,colors=col_b,linewidths=3,linestyles='solid')
+    ax_yx.contour(vfine,vfine,fv_2D(V1,V2,clfc,3,4),levels=levels,colors=col_c,linewidths=3,linestyles='solid')
     plt.ylabel(r'$v_\phi$ [km s$^{-1}$]',fontsize=xlblsize)
 
     plt.sca(ax_zx)
     ax_zx.plot(vx_red,vz_red,'o',markersize=point_size,markerfacecolor=colp,markeredgecolor=colp)
-    ax_zx.plot(vx,vz,'o',markersize=point_size+3,markerfacecolor='none',markeredgecolor=colp)
-    ax_zx.contour(vfine,vfine,fv_2D(V1,V2,clfa,0,2),levels=levels,colors=col_a,linewidths=3,linestyles='solid')
-    ax_zx.contour(vfine,vfine,fv_2D(V1,V2,clfb,0,2),levels=levels,colors=col_b,linewidths=3,linestyles='solid')
-    ax_zx.contour(vfine,vfine,fv_2D(V1,V2,clfc,0,2),levels=levels,colors=col_c,linewidths=3,linestyles='solid')
+    ax_zx.plot(vx,vz,'o',markersize=point_size,markerfacecolor='none',markeredgecolor=colp)
+    ax_zx.contour(vfine,vfine,fv_2D(V1,V2,clfb,3,5),levels=levels,colors=col_b,linewidths=3,linestyles='solid')
+    ax_zx.contour(vfine,vfine,fv_2D(V1,V2,clfc,3,5),levels=levels,colors=col_c,linewidths=3,linestyles='solid')
     plt.xlabel(r'$v_r$ [km s$^{-1}$]',fontsize=xlblsize)
     plt.ylabel(r'$v_z$ [km s$^{-1}$]',fontsize=xlblsize)
 
     plt.sca(ax_zy)
     ax_zy.plot(vy_red,vz_red,'o',markersize=point_size,markerfacecolor=colp,markeredgecolor=colp)
-    ax_zy.plot(vy,vz,'o',markersize=point_size+3,markerfacecolor='none',markeredgecolor=colp)
-    ax_zy.contour(vfine,vfine,fv_2D(V1,V2,clfa,1,2),levels=levels,colors=col_a,linewidths=3,linestyles='solid')
-    ax_zy.contour(vfine,vfine,fv_2D(V1,V2,clfb,1,2),levels=levels,colors=col_b,linewidths=3,linestyles='solid')
-    ax_zy.contour(vfine,vfine,fv_2D(V1,V2,clfc,1,2),levels=levels,colors=col_c,linewidths=3,linestyles='solid')
+    ax_zy.plot(vy,vz,'o',markersize=point_size,markerfacecolor='none',markeredgecolor=colp)
+    ax_zy.contour(vfine,vfine,fv_2D(V1,V2,clfb,4,5),levels=levels,colors=col_b,linewidths=3,linestyles='solid')
+    ax_zy.contour(vfine,vfine,fv_2D(V1,V2,clfc,4,5),levels=levels,colors=col_c,linewidths=3,linestyles='solid')
     plt.xlabel(r'$v_\phi$ [km s$^{-1}$]',fontsize=xlblsize)
 
+    # Tick style
     ax_x.tick_params(which='major',direction='in',width=2,length=10,right=True,top=True,pad=7,labelsize=24)
     ax_y.tick_params(which='major',direction='in',width=2,length=10,right=True,top=True,pad=7,labelsize=24)
     ax_z.tick_params(which='major',direction='in',width=2,length=10,right=True,top=True,pad=7,labelsize=24)
@@ -523,7 +614,16 @@ def VelocityTriangle(Cand,vmin=-595.0,vmax=595.0,nfine=500,nbins_1D = 50,\
     ax_yx.tick_params(which='major',direction='in',width=2,length=10,right=True,top=True,pad=7,labelsize=24)
     ax_zy.tick_params(which='major',direction='in',width=2,length=10,right=True,top=True,pad=7,labelsize=24)
 
-
+    # fix x-ticks
+    vtx = array([-500,-250,0,250,500])
+    ax_zx.set_xticks(vtx)
+    ax_zy.set_xticks(vtx)
+    ax_z.set_xticks(vtx)
+    ax_zx.set_xticklabels(vtx,rotation=40)
+    ax_zy.set_xticklabels(vtx,rotation=40)
+    ax_z.set_xticklabels(vtx,rotation=40)
+    
+    # Limits and removing ticks
     ax_yx.set_xlim([vmin,vmax])
     ax_yx.set_ylim([vmin,vmax])
     ax_zx.set_xlim([vmin,vmax])
@@ -544,130 +644,116 @@ def VelocityTriangle(Cand,vmin=-595.0,vmax=595.0,nfine=500,nbins_1D = 50,\
     ax_yx.set_xticklabels([])
     ax_zy.set_yticklabels([])
 
+
+    # Label for name and number of stars
     xlab = 0.66
     plt.gcf().text(xlab, 0.84, r'\bf {'+name+r'}', fontsize=60)
     plt.gcf().text(xlab,0.805,str(nstars)+' stars',fontsize=30)
-    #plt.gcf().text(x_lab,0.8,r'$\langle$[Fe/H]$\rangle$ = '+r'{:.2f}'.format(mean(feh)),fontsize=30)  
-
-    # Choose model
-    bics = array([0.0,0.0,0.0])
-    #bics[0] = clfa.bic(data)
-    #bics[1] = clfb.bic(data)
-    #bics[2] = clfc.bic(data)
-    # check if groups overlap and bimodal is overfitting
-    #if argmin(bics)==2:
-    covs = clfc.covariances_
-    meens = clfc.means_
-    chck = 0
-    for k in range(0,3):
-        dsig = 2.5*sqrt(covs[0,k,k])+2.5*sqrt(covs[1,k,k])
-        dv = abs(meens[0,k]-meens[1,k])
-        if dv>dsig:
-            chck += 1
-            
-    if chck==0:
-        bics[1] = -10000.0
-    else:
-        bics[2] = -10000.0
                   
+ 
+    label_b = '1 wrap'
+    label_c = '2 wraps'
+    if size(Psun)==1:
+        ax_x.fill_between(vfine,fv_1D(vfine,clfb,3),facecolor=col_b,alpha=def_alph,zorder=-5)
+        ax_y.fill_between(vfine,fv_1D(vfine,clfb,4),facecolor=col_b,alpha=def_alph,zorder=-5)
+        ax_z.fill_between(vfine,fv_1D(vfine,clfb,5),facecolor=col_b,alpha=def_alph,zorder=-5)
+        ax_yx.contourf(vfine,vfine,fv_2D(V1,V2,clfb,3,4),levels=levels,colors=col_b,alpha=def_alph,zorder=-5)
+        ax_zx.contourf(vfine,vfine,fv_2D(V1,V2,clfb,3,5),levels=levels,colors=col_b,alpha=def_alph,zorder=-5)
+        ax_zy.contourf(vfine,vfine,fv_2D(V1,V2,clfb,4,5),levels=levels,colors=col_b,alpha=def_alph,zorder=-5)
 
-    label_a = '1 mode (diag $\Sigma$)'
-    label_b = '1 mode (full $\Sigma$)'
-    label_c = '2 modes (full $\Sigma$)'
-    if (argmin(bics)==0) or (argmin(bics)==1) or (nstars<10):
-        ax_x.fill_between(vfine,fv_1D(vfine,clfb,0),facecolor=col_b,alpha=def_alph,zorder=-5)
-        ax_y.fill_between(vfine,fv_1D(vfine,clfb,1),facecolor=col_b,alpha=def_alph,zorder=-5)
-        ax_z.fill_between(vfine,fv_1D(vfine,clfb,2),facecolor=col_b,alpha=def_alph,zorder=-5)
-        ax_yx.contourf(vfine,vfine,fv_2D(V1,V2,clfb,0,1),levels=levels,colors=col_b,alpha=def_alph,zorder=-5)
-        ax_zx.contourf(vfine,vfine,fv_2D(V1,V2,clfb,0,2),levels=levels,colors=col_b,alpha=def_alph,zorder=-5)
-        ax_zy.contourf(vfine,vfine,fv_2D(V1,V2,clfb,1,2),levels=levels,colors=col_b,alpha=def_alph,zorder=-5)
-
+        
+        
         plt.sca(ax_yx)
-        ax_yx.plot(10*vmin,-10*vmin,'-',lw=3,color=col_a,label=label_a,zorder=-10)
         ax_yx.fill_between(-10000*vfine/vfine,-1000*vfine/vfine,\
                            y2=-10000,lw=3,edgecolor=col_b,facecolor=col_alpha(col_b),label=label_b,zorder=-1)
         ax_yx.plot(10*vmin,-10*vmin,'-',lw=3,color=col_c,label=label_c,zorder=5)
-        plt.gcf().text(xlab,0.74,r'{\bf Groups = 1}',fontsize=30,color=col_b) 
-
-        covs = clfc.covariances_
-        meens = clfc.means_
+        plt.gcf().text(xlab,0.77,r'{\bf Wraps = 1}',fontsize=30,color=col_b) 
     
-        plt.gcf().text(xlab,0.705,r'$\bar{v}_r $ = '\
-                       +'{:.1f}'.format(meens[0,0])\
-                       +'$\pm$'+'{:.1f}'.format(sqrt(covs[0,0,0]))\
+        plt.gcf().text(xlab,0.72,r'$\bar{v}_r $ = '\
+                       +'{:.1f}'.format(v_meens[0,0])\
+                       +'$\pm$'+'{:.1f}'.format(sqrt(v_covs[0,0,0]))\
                        +' km s$^{-1}$',fontsize=25)           
-        plt.gcf().text(xlab,0.675,r'$\bar{v}_\phi $ = '\
-                       +'{:.1f}'.format(meens[0,1])\
-                       +'$\pm$'+'{:.1f}'.format(sqrt(covs[0,1,1]))\
+        plt.gcf().text(xlab,0.69,r'$\bar{v}_\phi $ = '\
+                       +'{:.1f}'.format(v_meens[0,1])\
+                       +'$\pm$'+'{:.1f}'.format(sqrt(v_covs[0,1,1]))\
                        +' km s$^{-1}$',fontsize=25)            
-        plt.gcf().text(xlab,0.645,r'$\bar{v}_z $ = '\
-                       +'{:.1f}'.format(meens[0,2])\
-                       +'$\pm$'+'{:.1f}'.format(sqrt(covs[0,2,2]))\
+        plt.gcf().text(xlab,0.66,r'$\bar{v}_z $ = '\
+                       +'{:.1f}'.format(v_meens[0,2])\
+                       +'$\pm$'+'{:.1f}'.format(sqrt(v_covs[0,2,2]))\
                        +' km s$^{-1}$',fontsize=25) 
         
-        plt.gcf().text(xlab,0.615,r'[Fe/H] = '\
-                       +'{:.1f}'.format(meens[0,-1])\
-                       +'$\pm$'+'{:.1f}'.format(sqrt(covs[0,-1,-1])),fontsize=25) 
+        plt.gcf().text(xlab,0.63,r'[Fe/H] = '\
+                       +'{:.1f}'.format(fehs[0])\
+                       +'$\pm$'+'{:.1f}'.format(fehs[1]),fontsize=25) 
+        
+        plt.gcf().text(xlab,0.59,r'$P(\mathbf{x}_\odot)$ = '+'{:.1f}'.format(Psun)+r'$\sigma$',fontsize=25)
+
     else:
-        ax_x.fill_between(vfine,fv_1D(vfine,clfc,0),facecolor=col_c,alpha=def_alph,zorder=-5)
-        ax_y.fill_between(vfine,fv_1D(vfine,clfc,1),facecolor=col_c,alpha=def_alph,zorder=-5)
-        ax_z.fill_between(vfine,fv_1D(vfine,clfc,2),facecolor=col_c,alpha=def_alph,zorder=-5)
-        ax_yx.contourf(vfine,vfine,fv_2D(V1,V2,clfc,0,1),levels=levels,colors=col_c,alpha=def_alph,zorder=-5)
-        ax_zx.contourf(vfine,vfine,fv_2D(V1,V2,clfc,0,2),levels=levels,colors=col_c,alpha=def_alph,zorder=-5)
-        ax_zy.contourf(vfine,vfine,fv_2D(V1,V2,clfc,1,2),levels=levels,colors=col_c,alpha=def_alph,zorder=-5)
+        ax_x.fill_between(vfine,fv_1D(vfine,clfc,3),facecolor=col_c,alpha=def_alph,zorder=-5)
+        ax_y.fill_between(vfine,fv_1D(vfine,clfc,4),facecolor=col_c,alpha=def_alph,zorder=-5)
+        ax_z.fill_between(vfine,fv_1D(vfine,clfc,5),facecolor=col_c,alpha=def_alph,zorder=-5)
+        ax_yx.contourf(vfine,vfine,fv_2D(V1,V2,clfc,3,4),levels=levels,colors=col_c,alpha=def_alph,zorder=-5)
+        ax_zx.contourf(vfine,vfine,fv_2D(V1,V2,clfc,3,5),levels=levels,colors=col_c,alpha=def_alph,zorder=-5)
+        ax_zy.contourf(vfine,vfine,fv_2D(V1,V2,clfc,4,5),levels=levels,colors=col_c,alpha=def_alph,zorder=-5)
 
         plt.sca(ax_yx)
-        ax_yx.plot(10*vmin,-10*vmin,'-',lw=3,color=col_a,label=label_a)
+        
+        plt.gcf().text(xlab,0.77,r'{\bf Wraps = 2}',fontsize=30,color=col_c) 
+            
         ax_yx.plot(10*vmin,-10*vmin,'-',lw=3,color=col_b,label=label_b)
         ax_yx.fill_between(-10000*vfine/vfine,-1000*vfine/vfine,\
                            y2=-10000,lw=3,edgecolor=col_c,facecolor=col_alpha(col_c),label=label_c)
-        covs = clfc.covariances_
-        meens = clfc.means_
-        plt.gcf().text(xlab,0.705,r'$\bar{v}_r $ = '\
-                       +'{:.1f}'.format(meens[0,0])\
-                       +'$\pm$'+'{:.1f}'.format(sqrt(covs[0,0,0]))\
+        plt.gcf().text(xlab,0.72,r'$\bar{v}_{r,1} $ = '\
+                       +'{:.1f}'.format(v_meens[0,0])\
+                       +'$\pm$'+'{:.1f}'.format(sqrt(v_covs[0,0,0]))\
                        +' km s$^{-1}$',fontsize=25)           
-        plt.gcf().text(xlab,0.675,r'$\bar{v}_\phi $ = '\
-                       +'{:.1f}'.format(meens[0,1])\
-                       +'$\pm$'+'{:.1f}'.format(sqrt(covs[0,1,1]))\
+        plt.gcf().text(xlab,0.69,r'$\bar{v}_{\phi,1} $ = '\
+                       +'{:.1f}'.format(v_meens[0,1])\
+                       +'$\pm$'+'{:.1f}'.format(sqrt(v_covs[0,1,1]))\
                        +' km s$^{-1}$',fontsize=25)            
-        plt.gcf().text(xlab,0.645,r'$\bar{v}_z $ = '\
-                       +'{:.1f}'.format(meens[0,2])\
-                       +'$\pm$'+'{:.1f}'.format(sqrt(covs[0,2,2]))\
+        plt.gcf().text(xlab,0.66,r'$\bar{v}_{z,1} $ = '\
+                       +'{:.1f}'.format(v_meens[0,2])\
+                       +'$\pm$'+'{:.1f}'.format(sqrt(v_covs[0,2,2]))\
                        +' km s$^{-1}$',fontsize=25)  
+        plt.gcf().text(xlab,0.63,r'[Fe/H]$_1$ = '+'{:.1f}'.format(fehs[0,0])+'$\pm$'+'{:.1f}'.format(fehs[0,1]),fontsize=25) 
+        plt.gcf().text(xlab,0.60,r'$P(\mathbf{x}_\odot)_1$ = '+'{:.1f}'.format(Psun[0])+r'$\sigma$',fontsize=25)
 
-        plt.gcf().text(xlab,0.59,r'$\bar{v}_r $ = '\
-                       +'{:.1f}'.format(meens[1,0])\
-                       +'$\pm$'+'{:.1f}'.format(sqrt(covs[1,0,0]))\
+        
+        plt.gcf().text(xlab,0.53,r'$\bar{v}_{r,2} $ = '\
+                       +'{:.1f}'.format(v_meens[1,0])\
+                       +'$\pm$'+'{:.1f}'.format(sqrt(v_covs[1,0,0]))\
                        +' km s$^{-1}$',fontsize=25)           
-        plt.gcf().text(xlab,0.56,r'$\bar{v}_\phi $ = '\
-                       +'{:.1f}'.format(meens[1,1])\
-                       +'$\pm$'+'{:.1f}'.format(sqrt(covs[1,1,1]))\
+        plt.gcf().text(xlab,0.50,r'$\bar{v}_{\phi,2}$ = '\
+                       +'{:.1f}'.format(v_meens[1,1])\
+                       +'$\pm$'+'{:.1f}'.format(sqrt(v_covs[1,1,1]))\
                        +' km s$^{-1}$',fontsize=25)            
-        plt.gcf().text(xlab,0.53,r'$\bar{v}_z $ = '\
-                       +'{:.1f}'.format(meens[1,2])\
-                       +'$\pm$'+'{:.1f}'.format(sqrt(covs[1,2,2]))\
+        plt.gcf().text(xlab,0.47,r'$\bar{v}_{z,2}$ = '\
+                       +'{:.1f}'.format(v_meens[1,2])\
+                       +'$\pm$'+'{:.1f}'.format(sqrt(v_covs[1,2,2]))\
                        +' km s$^{-1}$',fontsize=25) 
-        plt.gcf().text(xlab,0.50,r'[Fe/H] = '\
-                       +'{:.1f}'.format(meens[0,-1])\
-                       +'$\pm$'+'{:.1f}'.format(sqrt(covs[0,-1,-1])),fontsize=25) 
-
-        plt.gcf().text(xlab,0.74,r'{\bf Groups = 2}',fontsize=30,color=col_c) 
-       
-    # Sun overlap
-    x_meens = meens[:,3:6]
-    x_covs = covs[:,3:6,3:6]
-    Psun = SunProb(x_meens,x_covs)
-    plt.gcf().text(xlab,0.77,r'$P(\mathbf{x}_\odot)$ = '+'{:.1f}'.format(amin(Psun))+r'$\sigma$',fontsize=30)
-
+        plt.gcf().text(xlab,0.44,r'[Fe/H]$_2$ = '+'{:.1f}'.format(fehs[1,0])+'$\pm$'+'{:.1f}'.format(fehs[1,1]),fontsize=25) 
+        plt.gcf().text(xlab,0.41,r'$P(\mathbf{x}_\odot)_2$ = '+'{:.1f}'.format(Psun[1])+r'$\sigma$',fontsize=25)
     
-    
+
+    if PlotFullSample:
+        cmap = cm.gray_r
+        cmap.set_under('white', 1.0)
+        df_full = pandas.read_csv('../data/Gaia-SDSS.csv')
+        vx0 = df_full.GalRVel.values
+        vy0 = df_full.GalphiVel.values
+        vz0 = df_full.GalzVel.values
+        ax_zy.hexbin(vy0,vz0,extent=(vmin,vmax,vmin,vmax),gridsize=30,cmap=cmap,\
+                     vmin=1.0,vmax=6000.0,linewidths=1.0,bins='log',zorder=-10,alpha=1.0)
+        ax_yx.hexbin(vx0,vy0,extent=(vmin,vmax,vmin,vmax),gridsize=30,cmap=cmap,\
+                     vmin=1.0,vmax=6000.0,linewidths=1.0,bins='log',zorder=-10,alpha=1.0)
+        ax_zx.hexbin(vx0,vz0,extent=(vmin,vmax,vmin,vmax),gridsize=30,cmap=cmap,\
+                     vmin=1.0,vmax=6000.0,linewidths=1.0,bins='log',zorder=-10,alpha=1.0)
+        
     plt.legend(fontsize=lblsize-5,frameon=False,bbox_to_anchor=(1.05, 2.0), loc=2, borderaxespad=0.)
 
-    fig.savefig('../plots/stars/Vtriangle_'+name+'.pdf',bbox_inches='tight') 
-    return fig
-
-
+    if SaveFigure:
+        fig.savefig('../plots/stars/Vtriangle_'+name+'.pdf',bbox_inches='tight') 
+    return x_meens,x_covs,v_meens,v_covs,fehs,pops,Psun,fig
 
 
 

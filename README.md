@@ -129,7 +129,7 @@ Here is each figure in the paper in order
 ---
 
 ## Fig. 10
-<img src="plots/plots_png/ShardsFlux.png" width="450" height="400">
+<img src="plots/plots_png/ShardsFlux.png" width="1000" height="400">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_Skymaps.ipynb)
 

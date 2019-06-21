@@ -1,5 +1,5 @@
 from numpy import pi, sqrt, exp, zeros, size, shape, linspace, meshgrid, cos, sin
-from numpy import trapz, arange, array, flipud, interp, inf, isnan
+from numpy import trapz, arange, array, flipud, interp, inf, isnan, vstack
 from scipy.integrate import cumtrapz
 from numpy.linalg import norm
 from scipy.special import erf, erfi
@@ -115,7 +115,7 @@ def VelocityDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
 # Speed distributions
 
 # Resolution of integral over velocities:
-n = 101
+n = 201
 dth = 2.0/(n-1.0)
 dph = 2*pi/(2*n*1.0)
 cvals = arange(-1.0,1.0,dth)
@@ -316,6 +316,93 @@ def SpeedDist_Triaxial_alt(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
             
     return fv1
 
+
+
+def VelocityDist1D_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
+                        v_shift=array([0.0,0.0,0.0]),GalFrame=False,\
+                      EscapeSpeed=True,SmoothCutoff=False):
+    
+    sigr = sig3[0]
+    sigphi = sig3[1]
+    sigz = sig3[2]
+
+    beta = 1.0-(sigphi**2.0+sigz**2.0)/(2*sigr**2.0)
+    N_esc = 1.0
+          
+    if not EscapeSpeed: 
+        N_esc = 1.0
+        v_esc = 1000.0
+
+    N = 1.0/(N_esc*(2*pi)**(1.5)*sigr*sigphi*sigz)
+    n = size(v)
+    fvr = zeros(shape=n)
+    fvphi = zeros(shape=n)
+    fvz = zeros(shape=n)
+    
+    if GalFrame:
+        v_off = -v_shift
+        v_max = v_esc
+    else:
+        v_e = LabFuncs.LabVelocitySimple(day,v_LSR=v_LSR)
+        v_max = v_esc+sqrt(sum(v_e**2.0))
+        v_off = v_e-v_shift
+
+    nfine = 51
+    vfine =linspace(-v_max,v_max,nfine) 
+    V1,V2 = meshgrid(vfine,vfine)
+    dv = vfine[1]-vfine[0]
+        
+    if SmoothCutoff:
+        vr = (v_max)*sqrt(1-C**2.0)*cos(P)+v_off[0]
+        vphi = (v_max)*sqrt(1-C**2.0)*sin(P)+v_off[1]
+        vz = (v_max)*C+v_off[2]
+        V = sqrt(vr**2.0+vphi**2.0+vz**2.0)
+        Fcorr = N*exp(-(vr**2.0/(2*sigr**2.0))\
+                      -(vz**2.0/(2*sigz**2.0))\
+                      -(vphi**2.0/(2*sigphi**2.0)))
+    else: 
+        Fcorr = 0.0
+            
+    for i in range(0,n):
+        vr = v[i]+v_off[0]
+        vphi = V1+v_off[1]
+        vz = V2+v_off[2]
+        V = sqrt(vr**2.0+vphi**2.0+vz**2.0)
+        F  = N*exp(-(vr**2.0/(2*sigr**2.0))\
+                   -(vz**2.0/(2*sigz**2.0))\
+                   -(vphi**2.0/(2*sigphi**2.0)))*(V<v_esc)-Fcorr
+        fvr[i] = dv*dv*sum(sum(F))
+
+        vr = V1+v_off[0]
+        vphi = v[i]+v_off[1]
+        vz = V2+v_off[2]
+        V = sqrt(vr**2.0+vphi**2.0+vz**2.0)
+        F  = N*exp(-(vr**2.0/(2*sigr**2.0))\
+                   -(vz**2.0/(2*sigz**2.0))\
+                   -(vphi**2.0/(2*sigphi**2.0)))*(V<v_esc)-Fcorr
+        fvphi[i] = dv*dv*sum(sum(F))
+
+        vr = V1+v_off[0]
+        vphi = V2+v_off[1]
+        vz = v[i]+v_off[2]
+        V = sqrt(vr**2.0+vphi**2.0+vz**2.0)
+        F  = N*exp(-(vr**2.0/(2*sigr**2.0))\
+                   -(vz**2.0/(2*sigz**2.0))\
+                   -(vphi**2.0/(2*sigphi**2.0)))*(V<v_esc)-Fcorr
+        fvz[i] = dv*dv*sum(sum(F))
+
+
+    fvr[v>v_max] = 0.0
+    fvphi[v>v_max] = 0.0
+    fvz[v>v_max] = 0.0
+
+    fvr /= trapz(fvr,v)
+    fvphi /= trapz(fvphi,v)
+    fvz /= trapz(fvz,v)
+    
+    fv3 = vstack((fvr.T,fvphi.T,fvz.T))
+    
+    return fv3
 
 
 

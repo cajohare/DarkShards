@@ -1157,3 +1157,40 @@ def StreamOrbit(Cand,nt=100,T_Myr=10.0,Moving=False):
     return orb_env,rsun,sig_sun,t
 
 
+def MollweideMap1(ax,TH,PH,fv0,cmin,cmax,nlevels,cmap,tfs,PlotCygnus=False,gridlinecolor='k',GalacticPlane=False):
+    plt.rcParams['axes.linewidth'] = 3
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif',size=15)
+
+    
+    ax.contourf(rad2deg(PH), rad2deg(TH),fv0,nlevels,transform=ccrs.PlateCarree(),\
+                cmap=cmap,vmin=cmin,vmax=cmax,linestyles='none')
+    ax.contourf(rad2deg(PH), rad2deg(TH),fv0,nlevels,transform=ccrs.PlateCarree(),\
+                cmap=cmap,vmin=cmin,vmax=cmax,linestyles='none')
+    ax.contourf(rad2deg(PH), rad2deg(TH),fv0,nlevels,transform=ccrs.PlateCarree(),\
+                cmap=cmap,vmin=cmin,vmax=cmax,linestyles='none')
+
+    gl = ax.gridlines(color=gridlinecolor,linewidth=1.5, linestyle='--',alpha=0.5)
+    gl.ylocator = mticker.FixedLocator([-90,-60, -30, 0, 30, 60,90])
+    ax.outline_patch.set_linewidth(3)
+   
+
+    tx = array([r'$-60^\circ$',r'$-30^\circ$',r'$0^\circ$',r'$+30^\circ$',r'$+60^\circ$']) 
+    xtx = array([0.17,0.05,-0.01,0.05,0.18])
+    ytx = array([0.08,0.26,0.49,0.72,0.9])
+    
+    for i in range(0,size(xtx)):
+        plt.text(xtx[i],ytx[i],tx[i],transform=ax.transAxes,horizontalalignment='right',verticalalignment='center',fontsize=tfs)
+
+
+    if PlotCygnus==True:
+        ax.plot(-cyg[0:4,0],cyg[0:4,1],'-',color='crimson',transform=ccrs.PlateCarree())
+        ax.plot(-cyg[4:,0],cyg[4:,1],'-',color='crimson',transform=ccrs.PlateCarree())
+        ax.plot(-cyg[:,0],cyg[:,1],'.',color='k',ms=5,transform=ccrs.PlateCarree())
+
+    if GalacticPlane==True:
+        ax.plot([-181,181],[0,0],'-',color=gridlinecolor,lw=1.5,transform=ccrs.PlateCarree())
+        ax.text(125,4,'Galactic',color=gridlinecolor,transform=ccrs.PlateCarree(),fontsize=int(tfs*0.8))
+        ax.text(135,-10,'plane',color=gridlinecolor,transform=ccrs.PlateCarree(),fontsize=int(tfs*0.8))
+    return
+

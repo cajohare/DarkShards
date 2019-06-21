@@ -25,7 +25,7 @@
 import numpy as np
 from numpy import cos, sin, pi, floor, exp, sqrt, size, zeros, shape, arccos
 from numpy import array, trapz
-
+import Params
 
 def BinEvents(Expt,dRfunc,*Args):
     # Expt = Detector class
@@ -202,7 +202,7 @@ def FormFactorHelm(E_r,A):
 v_pec = array([11.1,12.2,7.3])
 
 # Earth orbital params
-vv_earthrev = 29.8
+vv_earthrev = 29.79
 eccentricity = 0.016722
 eccentricity_deg = 0.9574
 orb_long_ecliptic = 13.0+1.0
@@ -221,15 +221,13 @@ AstronomicalUnit = 1.49597892e11 # Astronomical Unit
 EarthRadius = 6371.01*1000.0 # Earth Radius
 Msun = 2.0e30 # Solar mass (kg)
 bigG = 6.67e-11*(1.0e3)**(-3)
-
+Jan1 = 2458849.5 # Julian date of January 1 2019
 
 #------------------------------------------------------------------------------#
-def LabVelocity(JD, Loc, HaloModel):
-
+def LabVelocity(day, Loc=Params.Boulby, v_LSR=233.0):
+    JD = day+Jan1
     lat = Loc.Latitude
     lon = Loc.Longitude
-
-    v_LSR = HaloModel.RotationSpeed
 
     # Convert day into phase of Earth rotation t_lab
     UT = 24*(JD+0.5-floor(JD+0.5)) #Universal time
@@ -288,7 +286,13 @@ def LabVelocitySimple(day,v_LSR=233.0):
     return v_lab
 
 def EarthVelocity(day):
-    return vv_earthrev*(e1*cos(w_p*(day-t1)) + e2*sin(w_p*(day-t1)))
+    lambda_p = 102.93*pi/180.0
+    th = w_p*(day-t1)
+    v_E = cos(th)*(e1-2*eccentricity*sin(lambda_p)*e2) \
+          +sin(th)*(e2+2*eccentricity*sin(lambda_p)*e1) \
+          -eccentricity*(cos(2*th)*(cos(lambda_p)*e1-sin(lambda_p)*e2) \
+          +sin(2*th)*(sin(lambda_p)*e1+cos(lambda_p)*e2))    
+    return vv_earthrev*v_E
     
 def EarthVector(day):
     a_earth = AstronomicalUnit/1.0e3

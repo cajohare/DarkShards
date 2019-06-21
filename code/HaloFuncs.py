@@ -171,12 +171,12 @@ def SpeedDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
     sigz = sig3[2]
 
     beta = 1.0-(sigphi**2.0+sigz**2.0)/(2*sigr**2.0)
-    #if beta>0.0:
-    #    N_esc = Nesc_Triaxial(sigr,sigphi,beta,v_esc)
-    #elif beta==0.0:
-    #    N_esc = Nesc_Isotropic(sigr,v_esc)
-    #else:
-    N_esc = 1.0
+    if beta>0.0:
+        N_esc = Nesc_Triaxial(sigr,sigphi,beta,v_esc)
+    elif beta==0.0:
+        N_esc = Nesc_Isotropic(sigr,v_esc)
+    else:
+        N_esc = 1.0
         
     
         
@@ -255,7 +255,7 @@ def SpeedDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
             F = F-Fcorr
             fv1[i] = (v1**2.0)*dth*dph*sum(sum(F))
             
-        fv1[v>(v_esc+vv_e)] = 0.0
+        #fv1[v>(v_esc+vv_e)] = 0.0
     return fv1
 
 
@@ -314,7 +314,6 @@ def SpeedDist_Triaxial_alt(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
                        -(vphi**2.0/(2*sigphi**2.0)))*(V<(v_esc))
             fv1[i] = (v1**2.0)*sum(F)*dpix
             
-    fv1[v>(v_esc+vv_e)] = 0.0
     return fv1
 
 
@@ -362,7 +361,7 @@ def gvmin_Triaxial(v_min,day,sig,v_LSR=233.0,v_esc=528.0,\
                   v_shift=array([0.0,0.0,0.0]),GravFocus=False,v_exponent=-1.0):    
     v_min_fine = linspace(0.0001,800.0,300)
     fv = flipud((v_min_fine**v_exponent)*\
-                SpeedDist_Triaxial(v_min_fine,day,sig,v_LSR=v_LSR,v_esc=v_esc,\
+                SpeedDist_Triaxial_alt(v_min_fine,day,sig,v_LSR=v_LSR,v_esc=v_esc,\
                                               v_shift=v_shift,GravFocus=GravFocus))
     gvmin_fine = zeros(shape=size(v_min_fine))
     gvmin_fine[0:-1] = flipud(cumtrapz(fv,v_min_fine))

@@ -9,7 +9,7 @@ This repository contains the code, data and notebooks for (one hopes) reproducin
 Please contact me at ciaran.aj.ohare@gmail.com if you want to winge about why something doesn't work.
 
 
-<img src="data.gif" width="600" height="400">
+<img src="movies/SDSS-Gaia-Halo.gif" width="600" height="400">
 
 
 ## Contents
@@ -20,6 +20,7 @@ The code, plots, datas, etc. are sorted as follows:
 * `code/` - contains various functions which are used by the notebooks to generate the results and plots 
 * `notebooks/` - Notebooks which spit out various plots and other results that can be found in the paper
 * `plots/` - all plots get put here in pdf and png formats.
+* `movies/` - A few movies just for visualising the halo sample etc.
 
 ## Requirements
 
@@ -43,9 +44,9 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 Here is each figure in the paper in order
 
 ## Fig. X
-<img src="plots/plots_png/ShardsFlux.png" width="900" height="400">
+<img src="plots/plots_png/ShardsFlux.png" width="1000" height="400">
 
-[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/plot_Directional.ipynb)
+[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/plot_Skymaps.ipynb)
 
 Flux of dark matter particles
 

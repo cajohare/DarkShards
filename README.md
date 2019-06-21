@@ -129,34 +129,41 @@ Here is each figure in the paper in order
 ---
 
 ## Fig. 10
+<img src="plots/plots_png/ShardsFlux.png" width="450" height="400">
+
+[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_Skymaps.ipynb)
+
+---
+
+## Fig. 11
 <img src="plots/plots_png/Shards_axionspectrum.png" width="450" height="400">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_axionspectrum.ipynb)
 
 ---
 
-## Fig. 11
+## Fig. 12
 <img src="plots/plots_png/Shards_dRdE.png" width="450" height="400">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_NRdists.ipynb)
 
 ---
 
-## Fig. 12
+## Fig. 13
 <img src="plots/plots_png/Shards_annualmod_gravfocus.png" width="450" height="400">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_DAMAShards.ipynb)
 
 ---
 
-## Fig. 13
+## Fig. 14
 <img src="plots/plots_png/Shards_annualmod_gravfocus_Energies.png" width="800" height="600">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_DAMAShards.ipynb)
 
 ---
 
-## Fig. 14
+## Fig. 15
 <img src="plots/plots_png/Shards_Directional.png" width="1000" height="700">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_Skymaps.ipynb)

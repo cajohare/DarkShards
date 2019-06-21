@@ -40,14 +40,124 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ---
 
+
 # The Results
 Here is each figure in the paper in order
 
+
 ## Fig. X
-<img src="plots/plots_png/ShardsFlux.png" width="1000" height="400">
+<img src="plots/plots_png/vrvphi-zfehcut_dist.png" width="600" height="600">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/plot_Skymaps.ipynb)
 
-Flux of dark matter particles
+---
+
+
+## Fig. X
+<img src="plots/plots_png/Actions_decomposed_all.png" width="1000" height="300">
+
+<img src="plots/plots_png/Actions_decomposed_sausage.png" width="1000" height="300">
+
+<img src="plots/plots_png/Actions_decomposed_halo.png" width="1000" height="300">
+
+[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/plot_Skymaps.ipynb)
+
+---
+
+
+## Fig. X
+<img src="plots/plots_png/ShardsStars_partitioned.png" width="400" height="400">
+<img src="plots/plots_png/Shards_Efehdist_all.png" width="400" height="400">
+
+[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/plot_Skymaps.ipynb)
+
+---
+
+## Fig. X
+<img src="plots/plots_png/fv3_halo_highE.png" width="400" height="400">
+
+[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/plot_Skymaps.ipynb)
+
+---
+
+
+## Fig. X
+<img src="plots/plots_png/Vtriangle_S1.png" width="400" height="400">
+<img src="plots/plots_png/Vtriangle_S2.png" width="400" height="400">
+
+<img src="plots/plots_png/Vtriangle_Rg5.png" width="400" height="400">
+<img src="plots/plots_png/Vtriangle_Cand9.png" width="400" height="400">
+
+[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/plot_Skymaps.ipynb)
+
+---
+
+## Fig. X
+<img src="plots/plots_png/XYZ_S1.png" width="700" height="400">
+
+<img src="plots/plots_png/XYZ_S2.png" width="700" height="400">
+
+<img src="plots/plots_png/XYZ_Cand14.png" width="700" height="400">
+
+[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/plot_Skymaps.ipynb)
+
+---
+
+## Fig. X
+<img src="plots/plots_png/Shards_fv_wVL2.png" width="400" height="400">
+
+[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/plot_Skymaps.ipynb)
+
+---
+
+## Fig. X
+<img src="plots/plots_png/fv3_Shards.png" width="1000" height="400">
+
+[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/plot_Skymaps.ipynb)
+
+---
+
+## Fig. X
+<img src="plots/plots_png/fv_Shards.png" width="400" height="400">
+
+[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/plot_Skymaps.ipynb)
+
+---
+
+## Fig. X
+<img src="plots/plots_png/Shards_axionspectrum.png" width="400" height="400">
+
+[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/plot_Skymaps.ipynb)
+
+---
+
+## Fig. X
+<img src="plots/plots_png/Shards_dRdE.png" width="400" height="400">
+
+[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/plot_Skymaps.ipynb)
+
+---
+
+## Fig. X
+<img src="plots/plots_png/Shards_annualmod_gravfocus.png" width="400" height="400">
+
+[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/plot_Skymaps.ipynb)
+
+---
+
+## Fig. X
+<img src="plots/plots_png/Shards_annualmod_gravfocus_Energies.png" width="800" height="800">
+
+[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/plot_Skymaps.ipynb)
+
+---
+
+## Fig. X
+<img src="plots/plots_png/Shards_Directional.png" width="1000" height="1000">
+
+[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/plot_Skymaps.ipynb)
+
+---
+
 
 

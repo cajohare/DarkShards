@@ -115,7 +115,7 @@ def VelocityDist_Triaxial(v,day,sig3,v_LSR=233.0,v_esc=528.0,\
 # Speed distributions
 
 # Resolution of integral over velocities:
-n = 201
+n = 401
 dth = 2.0/(n-1.0)
 dph = 2*pi/(2*n*1.0)
 cvals = arange(-1.0,1.0,dth)

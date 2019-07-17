@@ -887,6 +887,7 @@ def XY_XZ(Cand,z_th=6.0,xmin = 0.0,xmax = 16.0,StarsColour='Purple',\
     ax_xz.set_ylabel(r"Galactic $Z$ [kpc]",fontsize=27);
 
     plt.gcf().text(0.89,0.85,r'\bf {'+name+r'}', fontsize=40,horizontalalignment='right',verticalalignment='top')  
+    plt.gcf().text(0.45,0.85,r'\bf {'+name+r'}', fontsize=40,horizontalalignment='right',verticalalignment='top')  
 
     if Grid:
         phi = linspace(-pi/2,pi/2,7)
@@ -1164,11 +1165,7 @@ def MollweideMap1(ax,TH,PH,fv0,cmin,cmax,nlevels,cmap,tfs,PlotCygnus=False,gridl
 
     
     ax.contourf(rad2deg(PH), rad2deg(TH),fv0,nlevels,transform=ccrs.PlateCarree(),\
-                cmap=cmap,vmin=cmin,vmax=cmax,linestyles='none')
-    ax.contourf(rad2deg(PH), rad2deg(TH),fv0,nlevels,transform=ccrs.PlateCarree(),\
-                cmap=cmap,vmin=cmin,vmax=cmax,linestyles='none')
-    ax.contourf(rad2deg(PH), rad2deg(TH),fv0,nlevels,transform=ccrs.PlateCarree(),\
-                cmap=cmap,vmin=cmin,vmax=cmax,linestyles='none')
+                cmap=cmap,vmin=cmin,vmax=cmax,linestyles='none',antialiased=True)
 
     gl = ax.gridlines(color=gridlinecolor,linewidth=1.5, linestyle='--',alpha=0.5)
     gl.ylocator = mticker.FixedLocator([-90,-60, -30, 0, 30, 60,90])

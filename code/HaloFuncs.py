@@ -15,7 +15,7 @@ import Params
 
 import healpy as hp
 
-nside = 32
+nside = 64
 npix = 12*nside**2
 dpix = 4*pi/(npix*1.0)
 x_pix = zeros(shape=(npix,3))
@@ -23,7 +23,7 @@ for i in range(0,npix):
     x_pix[i,:] = hp.pix2vec(nside, i)
 
 # Resolution of integral over velocities:
-n = 101
+n = 51
 dth = 2.0/(n-1.0)
 dph = 2*pi/(2*n*1.0)
 cvals = arange(-1.0,1.0,dth)

@@ -63,17 +63,6 @@ Here is each figure in the paper in order
 
 ---
 
-
-## Fig. 3
-<p float="left">
-  <img src="plots/plots_png/ShardsStars_partitioned.png" width="330" height="300">
-  <img src="plots/plots_png/Shards_Efehdist_all.png" width="330" height="300">
-</p>
-
-[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_EnergyMetallicity.ipynb)
-
----
-
 ## Fig. 4
 <img src="plots/plots_png/fv3_halo_highE.png" width="1000" height="300">
 
@@ -90,7 +79,7 @@ Here is each figure in the paper in order
 
 <p float="left">
   <img src="plots/plots_png/Vtriangle_Rg5.png" width="330" height="300">
-  <img src="plots/plots_png/Vtriangle_Cand9.png" width="330" height="300">
+  <img src="plots/plots_png/Vtriangle_Cand14.png" width="330" height="300">
 </p>
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Stars_GenerateAllPlots.ipynb)
@@ -104,12 +93,6 @@ Here is each figure in the paper in order
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Stars_GenerateAllPlots.ipynb)
 
----
-
-## Fig. 7
-<img src="plots/plots_png/Shards_fv_wVL2.png" width="400" height="400">
-
-[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_SpeedDistributions.ipynb)
 
 ---
 
@@ -170,9 +153,33 @@ Here is each figure in the paper in order
 ---
 
 ## Fig. 16
-<img src="plots/plots_png/Shards_Directional.png" width="700" height="1000">
+<img src="plots/plots_png/Shards_indiv_Directional.png" width="700" height="1000">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_DirectionalNR.ipynb)
 
 ---
 
+# Bonus plots
+
+## Comparisons of stellar halo and Shards
+<p float="left">
+  <img src="plots/plots_png/ShardsStars_partitioned.png" width="330" height="300">
+  <img src="plots/plots_png/Shards_Efehdist_all.png" width="330" height="300">
+</p>
+
+[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_EnergyMetallicity.ipynb)
+
+---
+
+
+## Annual modulation harmonic analysis
+<p float="left">
+  <img src="plots/plots_png/Shards_FourierA.png" width="330" height="300">
+  <img src="plots/plots_png/Shards_FourierA_gmin.png" width="330" height="300">
+</p>
+
+[Click here for the notebook (left)](https://github.com/cajohare/DarkShards/blob/master/code/Plot_StreamFourierSeries.ipynb)
+
+[Click here for the notebook (right)](https://github.com/cajohare/DarkShards/blob/master/code/Plot_StreamFourierSeries2.ipynb)
+
+---

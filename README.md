@@ -4,7 +4,7 @@
 [//]: [![arXiv](https://img.shields.io/badge/arXiv-19??.????-.svg)](https://arxiv.org/abs/????.????)
 [![MIT Licence](https://badges.frapsoft.com/os/mit/mit.svg?v=103)](https://opensource.org/licenses/mit-license.php)
 
-This repository contains the code, data and notebooks for (one hopes) reproducing the entirety of our recent paper "*Impact of the ex-situ halo on searches for dark matter*". There are also many results which did not make it in to final version but I've left in for potential future interest. In case you're interested in a particular plot see below for a list of various plots and the links to the specific notebook that makes it.
+This repository contains the code, data and notebooks for (one hopes) reproducing the entirety of our recent paper "*Dark Shards*". There are also a few results and bits and pieces which did not make it in to final version but I've left in for potential future interest. In case you're interested in a particular plot see below for a list of various plots and the links to the specific notebook that makes it.
 
 Please contact me at ciaran.aj.ohare@gmail.com if you want to winge about why something doesn't work.
 
@@ -17,9 +17,8 @@ Please contact me at ciaran.aj.ohare@gmail.com if you want to winge about why so
 The code, plots, datas, etc. are sorted as follows:
 
 * `data/` - Contains the *Gaia* sample of halo stars as well as various cleaned samples of the same data and the extracted substructures and fits.
-* `code/` - contains various functions which are used by the notebooks to generate the results and plots 
-* `notebooks/` - Notebooks which spit out various plots and other results that can be found in the paper
-* `plots/` - all plots get put here in pdf and png formats.
+* `code/` - Notebooks and python files which spit out various plots and other results that can be found in the paper
+* `plots/` - plots get put here in pdf and png formats.
 * `movies/` - A few movies just for visualising the halo sample etc.
 
 ## Requirements
@@ -150,25 +149,30 @@ Here is each figure in the paper in order
 ---
 
 ## Fig. 13
-<img src="plots/plots_png/Shards_annualmod_gravfocus.png" width="450" height="400">
+<img src="plots/plots_png/Shards_annualmod_gravfocus_50GeV.png" width="450" height="400">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_DAMAShards.ipynb)
 
 ---
 
 ## Fig. 14
-<img src="plots/plots_png/Shards_annualmod_gravfocus_Energies.png" width="800" height="600">
+<img src="plots/plots_png/Shards_annualmod_binned_50GeV.png" width="800" height="600">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_DAMAShards.ipynb)
 
 ---
 
 ## Fig. 15
-<img src="plots/plots_png/Shards_Directional.png" width="1000" height="700">
+<img src="plots/plots_png/Shards_Directional.png" width="1000" height="600">
 
-[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_Skymaps.ipynb)
+[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_DirectionalNR.ipynb)
 
 ---
 
+## Fig. 16
+<img src="plots/plots_png/Shards_Directional.png" width="700" height="1000">
 
+[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_DirectionalNR.ipynb)
+
+---
 

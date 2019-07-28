@@ -294,17 +294,15 @@ def EarthVelocity(day):
           +sin(2*th)*(sin(lambda_p)*e1+cos(lambda_p)*e2))    
     return vv_earthrev*v_E
     
+
 def EarthVector(day):
     a_earth = AstronomicalUnit/1.0e3
     tp = 3
-    lamb = 102*pi/180
+    lamb_p = 102*pi/180
     g = w_p*(day-tp)
     nu = g + 2.*eccentricity*sin(g)*(5.0/4.0)+eccentricity**2.0*sin(2*g)
     r = a_earth*(1-eccentricity**2.0)/(1+eccentricity*cos(nu))
-
-    T1 = w_p*(day-t1)
-    T2 = lamb + nu
-    r_earth = r*(-sin(T2)*e1 + cos(T2)*e2)
+    r_earth = r*(-sin(lamb_p+nu)*e1 + cos(lamb_p+nu)*e2)
     return r_earth
 
 def v_infinity(v,costh,phi,day):

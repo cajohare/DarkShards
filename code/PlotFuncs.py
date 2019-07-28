@@ -30,14 +30,27 @@ Sun_cyl = array([Sun[0],0.0,Sun[2]])
 from astropy import units as u
 from astropy.coordinates import SkyCoord, get_constellation
 
-cygnus_stars = array(['β','η','γ','α','γ','δ','ι','κ','ι','δ','γ','ε','ζ'])
-#cygnus_stars = ['Deneb','gamma cyg']
-nst = size(cygnus_stars)
-cyg = zeros(shape=(nst,2))
-for i in range(0,nst):
-    c = SkyCoord.from_name(cygnus_stars[i]+' Cyg').galactic
-    cyg[i,:] = array([c.l.degree,c.b.degree])
+# cygnus_stars = array(['β','η','γ','α','γ','δ','ι','κ','ι','δ','γ','ε','ζ'])
+# #cygnus_stars = ['Deneb','gamma cyg']
+# nst = size(cygnus_stars)
+# cyg = zeros(shape=(nst,2))
+# for i in range(0,nst):
+#     c = SkyCoord.from_name(cygnus_stars[i]+' Cyg').galactic
+#     cyg[i,:] = array([c.l.degree,c.b.degree])
 
+cyg = array([[ 62.10963941,   4.57150891],
+       [ 71.01544763,   3.3646167 ],
+       [ 78.14859103,   1.86708845],
+       [ 84.28473664,   1.99754612],
+       [ 78.14859103,   1.86708845],
+       [ 78.70955616,  10.24302209],
+       [ 83.61190613,  15.44876931],
+       [ 84.40177176,  17.85322722],
+       [ 83.61190613,  15.44876931],
+       [ 78.70955616,  10.24302209],
+       [ 78.14859103,   1.86708845],
+       [ 75.95136158,  -5.71541249],
+       [ 76.75381354, -12.45226928]])
 
 def reverse_colourmap(cmap, name = 'my_cmap_r'):
     """

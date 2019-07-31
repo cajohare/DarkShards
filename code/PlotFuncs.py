@@ -580,7 +580,7 @@ def VelocityTriangle(Cand,vmin=-595.0,vmax=595.0,nfine=500,nbins_1D = 50,\
     plt.hist(vx,range=[vmin,vmax],bins=nbins_1D,color=col_hist,linewidth=3,histtype='step',density=True,stacked=True)
     plt.plot(vfine,fv_1D(vfine,clfb,3),'-',linewidth=3,color=col_b)
     plt.plot(vfine,fv_1D(vfine,clfc,3),'-',linewidth=3,color=col_c)
-    plt.ylabel(r'$v_r$ [km s$^{-1}$]',fontsize=xlblsize)
+    plt.ylabel(r'$v_R$ [km s$^{-1}$]',fontsize=xlblsize)
 
     plt.sca(ax_y)
     ax_y.hist(vy,range=[vmin,vmax],bins=nbins_1D,color=col_hist,linewidth=3,alpha=def_alph,density=True,stacked=True)
@@ -609,7 +609,7 @@ def VelocityTriangle(Cand,vmin=-595.0,vmax=595.0,nfine=500,nbins_1D = 50,\
     ax_zx.plot(vx,vz,'o',markersize=point_size,markerfacecolor='none',markeredgecolor=colp)
     ax_zx.contour(vfine,vfine,fv_2D(V1,V2,clfb,3,5),levels=levels,colors=col_b,linewidths=3,linestyles='solid')
     ax_zx.contour(vfine,vfine,fv_2D(V1,V2,clfc,3,5),levels=levels,colors=col_c,linewidths=3,linestyles='solid')
-    plt.xlabel(r'$v_r$ [km s$^{-1}$]',fontsize=xlblsize)
+    plt.xlabel(r'$v_R$ [km s$^{-1}$]',fontsize=xlblsize)
     plt.ylabel(r'$v_z$ [km s$^{-1}$]',fontsize=xlblsize)
 
     plt.sca(ax_zy)
@@ -682,7 +682,7 @@ def VelocityTriangle(Cand,vmin=-595.0,vmax=595.0,nfine=500,nbins_1D = 50,\
         ax_yx.plot(10*vmin,-10*vmin,'-',lw=3,color=col_c,label=label_c,zorder=5)
         plt.gcf().text(xlab,0.77,r'{\bf Wraps = 1}',fontsize=30,color=col_b) 
     
-        plt.gcf().text(xlab,0.72,r'$\bar{v}_r $ = '\
+        plt.gcf().text(xlab,0.72,r'$\bar{v}_R $ = '\
                        +'{:.1f}'.format(v_meens[0,0])\
                        +'$\pm$'+'{:.1f}'.format(sqrt(v_covs[0,0,0]))\
                        +' km s$^{-1}$',fontsize=25)           
@@ -716,7 +716,7 @@ def VelocityTriangle(Cand,vmin=-595.0,vmax=595.0,nfine=500,nbins_1D = 50,\
         ax_yx.plot(10*vmin,-10*vmin,'-',lw=3,color=col_b,label=label_b)
         ax_yx.fill_between(-10000*vfine/vfine,-1000*vfine/vfine,\
                            y2=-10000,lw=3,edgecolor=col_c,facecolor=col_alpha(col_c),label=label_c)
-        plt.gcf().text(xlab,0.72,r'$\bar{v}_{r,1} $ = '\
+        plt.gcf().text(xlab,0.72,r'$\bar{v}_{R,1} $ = '\
                        +'{:.1f}'.format(v_meens[0,0])\
                        +'$\pm$'+'{:.1f}'.format(sqrt(v_covs[0,0,0]))\
                        +' km s$^{-1}$',fontsize=25)           
@@ -732,7 +732,7 @@ def VelocityTriangle(Cand,vmin=-595.0,vmax=595.0,nfine=500,nbins_1D = 50,\
         plt.gcf().text(xlab,0.60,r'$P(\mathbf{x}_\odot)_1$ = '+'{:.1f}'.format(Psun[0])+r'$\sigma$',fontsize=25)
 
         
-        plt.gcf().text(xlab,0.53,r'$\bar{v}_{r,2} $ = '\
+        plt.gcf().text(xlab,0.53,r'$\bar{v}_{R,2} $ = '\
                        +'{:.1f}'.format(v_meens[1,0])\
                        +'$\pm$'+'{:.1f}'.format(sqrt(v_covs[1,0,0]))\
                        +' km s$^{-1}$',fontsize=25)           

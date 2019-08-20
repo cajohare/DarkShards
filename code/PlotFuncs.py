@@ -716,36 +716,36 @@ def VelocityTriangle(Cand,vmin=-595.0,vmax=595.0,nfine=500,nbins_1D = 50,\
         ax_yx.plot(10*vmin,-10*vmin,'-',lw=3,color=col_b,label=label_b)
         ax_yx.fill_between(-10000*vfine/vfine,-1000*vfine/vfine,\
                            y2=-10000,lw=3,edgecolor=col_c,facecolor=col_alpha(col_c),label=label_c)
-        plt.gcf().text(xlab,0.72,r'$\bar{v}_{R,1} $ = '\
+        plt.gcf().text(xlab,0.72,r'$\bar{v}_{R,a} $ = '\
                        +'{:.1f}'.format(v_meens[0,0])\
                        +'$\pm$'+'{:.1f}'.format(sqrt(v_covs[0,0,0]))\
                        +' km s$^{-1}$',fontsize=25)           
-        plt.gcf().text(xlab,0.69,r'$\bar{v}_{\phi,1} $ = '\
+        plt.gcf().text(xlab,0.69,r'$\bar{v}_{\phi,a} $ = '\
                        +'{:.1f}'.format(v_meens[0,1])\
                        +'$\pm$'+'{:.1f}'.format(sqrt(v_covs[0,1,1]))\
                        +' km s$^{-1}$',fontsize=25)            
-        plt.gcf().text(xlab,0.66,r'$\bar{v}_{z,1} $ = '\
+        plt.gcf().text(xlab,0.66,r'$\bar{v}_{z,a} $ = '\
                        +'{:.1f}'.format(v_meens[0,2])\
                        +'$\pm$'+'{:.1f}'.format(sqrt(v_covs[0,2,2]))\
                        +' km s$^{-1}$',fontsize=25)  
-        plt.gcf().text(xlab,0.63,r'[Fe/H]$_1$ = '+'{:.1f}'.format(fehs[0,0])+'$\pm$'+'{:.1f}'.format(fehs[0,1]),fontsize=25) 
-        plt.gcf().text(xlab,0.60,r'$P(\mathbf{x}_\odot)_1$ = '+'{:.1f}'.format(Psun[0])+r'$\sigma$',fontsize=25)
+        plt.gcf().text(xlab,0.63,r'[Fe/H]$_a$ = '+'{:.1f}'.format(fehs[0,0])+'$\pm$'+'{:.1f}'.format(fehs[0,1]),fontsize=25) 
+        plt.gcf().text(xlab,0.60,r'$P(\mathbf{x}_\odot)_a$ = '+'{:.1f}'.format(Psun[0])+r'$\sigma$',fontsize=25)
 
         
-        plt.gcf().text(xlab,0.53,r'$\bar{v}_{R,2} $ = '\
+        plt.gcf().text(xlab,0.53,r'$\bar{v}_{R,b} $ = '\
                        +'{:.1f}'.format(v_meens[1,0])\
                        +'$\pm$'+'{:.1f}'.format(sqrt(v_covs[1,0,0]))\
                        +' km s$^{-1}$',fontsize=25)           
-        plt.gcf().text(xlab,0.50,r'$\bar{v}_{\phi,2}$ = '\
+        plt.gcf().text(xlab,0.50,r'$\bar{v}_{\phi,b}$ = '\
                        +'{:.1f}'.format(v_meens[1,1])\
                        +'$\pm$'+'{:.1f}'.format(sqrt(v_covs[1,1,1]))\
                        +' km s$^{-1}$',fontsize=25)            
-        plt.gcf().text(xlab,0.47,r'$\bar{v}_{z,2}$ = '\
+        plt.gcf().text(xlab,0.47,r'$\bar{v}_{z,b}$ = '\
                        +'{:.1f}'.format(v_meens[1,2])\
                        +'$\pm$'+'{:.1f}'.format(sqrt(v_covs[1,2,2]))\
                        +' km s$^{-1}$',fontsize=25) 
-        plt.gcf().text(xlab,0.44,r'[Fe/H]$_2$ = '+'{:.1f}'.format(fehs[1,0])+'$\pm$'+'{:.1f}'.format(fehs[1,1]),fontsize=25) 
-        plt.gcf().text(xlab,0.41,r'$P(\mathbf{x}_\odot)_2$ = '+'{:.1f}'.format(Psun[1])+r'$\sigma$',fontsize=25)
+        plt.gcf().text(xlab,0.44,r'[Fe/H]$_b$ = '+'{:.1f}'.format(fehs[1,0])+'$\pm$'+'{:.1f}'.format(fehs[1,1]),fontsize=25) 
+        plt.gcf().text(xlab,0.41,r'$P(\mathbf{x}_\odot)_b$ = '+'{:.1f}'.format(Psun[1])+r'$\sigma$',fontsize=25)
     
 
     if PlotFullSample:

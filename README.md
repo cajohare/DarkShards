@@ -1,6 +1,6 @@
 # DarkShards
 
-[//]: [![DOI](https://zenodo.org/badge/????????.svg)](https://zenodo.org/badge/latestdoi/????????) 
+[![DOI](https://zenodo.org/badge/156694427.svg)](https://zenodo.org/badge/latestdoi/156694427)
 [//]: [![arXiv](https://img.shields.io/badge/arXiv-19??.????-.svg)](https://arxiv.org/abs/????.????)
 [![MIT Licence](https://badges.frapsoft.com/os/mit/mit.svg?v=103)](https://opensource.org/licenses/mit-license.php)
 
@@ -153,7 +153,7 @@ Here is each figure in the paper in order
 ---
 
 ## Fig. 16
-<img src="plots/plots_png/Shards_indiv_Directional.png" width="700" height="1000">
+<img src="plots/plots_png/Shards_indiv_Directional.png" width="900" height="1000">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_DirectionalNR.ipynb)
 

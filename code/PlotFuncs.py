@@ -813,7 +813,8 @@ def XY_XZ(Cand,z_th=6.0,xmin = 0.0,xmax = 16.0,StarsColour='Purple',\
     nstars = size(Cand,0)
     x,y,z = Cand.GalRecX,Cand.GalRecY,Cand.GalRecZ
     U,V,W = Cand.GalU,Cand.GalV,Cand.GalW
-
+    U = U*-1.0
+    
     # reduced points
     ZSCORE = abs(zscore(z))+abs(zscore(x))+abs(zscore(y))\
             +abs(zscore(U))+abs(zscore(V))+abs(zscore(W))
@@ -899,8 +900,8 @@ def XY_XZ(Cand,z_th=6.0,xmin = 0.0,xmax = 16.0,StarsColour='Purple',\
     ax_xz.set_xlabel(r"Galactic $X$ [kpc]",fontsize=27);
     ax_xz.set_ylabel(r"Galactic $Z$ [kpc]",fontsize=27);
 
-    plt.gcf().text(0.89,0.85,r'\bf {'+name+r'}', fontsize=40,horizontalalignment='right',verticalalignment='top')  
-    plt.gcf().text(0.45,0.85,r'\bf {'+name+r'}', fontsize=40,horizontalalignment='right',verticalalignment='top')  
+    plt.gcf().text(0.573,0.85,r'\bf {'+name+r'}', fontsize=40,horizontalalignment='left',verticalalignment='top')  
+    plt.gcf().text(0.14,0.85,r'\bf {'+name+r'}', fontsize=40,horizontalalignment='left',verticalalignment='top')  
 
     if Grid:
         phi = linspace(-pi/2,pi/2,7)
@@ -919,9 +920,9 @@ def XY_XZ(Cand,z_th=6.0,xmin = 0.0,xmax = 16.0,StarsColour='Purple',\
         ax_xy.set_yticks(arange(-xmax,xmax,2.0))
         ax_xz.set_yticks(arange(-xmax,xmax,2.0))
 
-    ax_xy.set_xlim([xmin,xmax])
+    ax_xy.set_xlim([xmax,xmin])
     ax_xy.set_ylim([-xmax/2.0,xmax/2.0])
-    ax_xz.set_xlim([xmin,xmax])
+    ax_xz.set_xlim([xmax,xmin])
     ax_xz.set_ylim([-xmax/2.0,xmax/2.0])
     
     if Footprint:

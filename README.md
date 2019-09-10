@@ -66,13 +66,13 @@ Here is each figure in the paper in order
 
 ## Fig. 3
 <p float="left">
-  <img src="plots/stars/png/Vtriangle_S1.png" width="330" height="300">
-  <img src="plots/stars/png/Vtriangle_S2.png" width="330" height="300">
+  <img src="plots/stars/png/Vtriangle_S1.png" width="450" height="400">
+  <img src="plots/stars/png/Vtriangle_S2.png" width="450" height="400">
 </p>
 
 <p float="left">
-  <img src="plots/stars/png/Vtriangle_Rg5.png" width="330" height="300">
-  <img src="plots/stars/png/Vtriangle_Cand14.png" width="330" height="300">
+  <img src="plots/stars/png/Vtriangle_Rg5.png" width="450" height="400">
+  <img src="plots/stars/png/Vtriangle_Cand14.png" width="450" height="400">
 </p>
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_Vtriangle.ipynb)
@@ -147,14 +147,14 @@ Here is each figure in the paper in order
 ---
 
 ## Fig. 13
-<img src="plots/plots_png/Shards_Directional.png" width="1050" height="600">
+<img src="plots/plots_png/Shards_Directional.png" width="1200" height="600">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_DirectionalNR.ipynb)
 
 ---
 
 ## Fig. 14
-<img src="plots/plots_png/Shards_indiv_Directional.png" width="1300" height="1000">
+<img src="plots/plots_png/Shards_indiv_Directional.png" width="1500" height="1000">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_DirectionalNR.ipynb)
 

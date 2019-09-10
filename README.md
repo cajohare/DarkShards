@@ -10,6 +10,7 @@ Please contact me at ciaran.aj.ohare@gmail.com if you want to complain about why
 
 
 <img src="movies/SDSS-Gaia-Halo.gif" width="600" height="400">
+
 [Click here for the notebook that creates this movie](https://github.com/cajohare/DarkShards/blob/master/code/Movie.ipynb)
 
 

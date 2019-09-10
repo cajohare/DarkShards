@@ -154,7 +154,7 @@ Here is each figure in the paper in order
 ---
 
 ## Fig. 14
-<img src="plots/plots_png/Shards_indiv_Directional.png" width="1100" height="1000">
+<img src="plots/plots_png/Shards_indiv_Directional.png" width="1300" height="1000">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_DirectionalNR.ipynb)
 

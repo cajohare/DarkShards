@@ -140,7 +140,7 @@ Here is each figure in the paper in order
 ---
 
 ## Fig. 12
-<img src="plots/plots_png/Shards_annualmod_binned_50GeV.png" width="900" height="600">
+<img src="plots/plots_png/Shards_annualmod_binned_50GeV.png" width="1000" height="600">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_DAMAShards.ipynb)
 

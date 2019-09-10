@@ -10,6 +10,7 @@ Please contact me at ciaran.aj.ohare@gmail.com if you want to winge about why so
 
 
 <img src="movies/SDSS-Gaia-Halo.gif" width="600" height="400">
+[Click here for the notebook that creates this movie](https://github.com/cajohare/DarkShards/blob/master/code/Movie.ipynb)
 
 
 ## Contents
@@ -63,96 +64,96 @@ Here is each figure in the paper in order
 
 ---
 
-## Fig. 4
-<img src="plots/plots_png/fv3_halo_highE.png" width="1000" height="300">
+## Fig. 3
+<p float="left">
+  <img src="plots/stars/png/Vtriangle_S1.png" width="330" height="300">
+  <img src="plots/stars/png/Vtriangle_S2.png" width="330" height="300">
+</p>
 
-[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_comparespeeddists_halo.ipynb)
+<p float="left">
+  <img src="plots/stars/png/Vtriangle_Rg5.png" width="330" height="300">
+  <img src="plots/stars/png/Vtriangle_Cand14.png" width="330" height="300">
+</p>
+
+[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_Vtriangle.ipynb)
 
 ---
 
+## Fig. 4
+<img src="plots/stars/png/XYZ_S1.png" width="900" height="400">
+<img src="plots/stars/png/XYZ_S2.png" width="900" height="400">
+<img src="plots/stars/png/XYZ_Cand14.png" width="900" height="400">
+
+[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_XYZ.ipynb)
+
+
+---
 
 ## Fig. 5
-<p float="left">
-  <img src="plots/plots_png/Vtriangle_S1.png" width="330" height="300">
-  <img src="plots/plots_png/Vtriangle_S2.png" width="330" height="300">
-</p>
-
-<p float="left">
-  <img src="plots/plots_png/Vtriangle_Rg5.png" width="330" height="300">
-  <img src="plots/plots_png/Vtriangle_Cand14.png" width="330" height="300">
-</p>
-
-[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Stars_GenerateAllPlots.ipynb)
-
----
-
-## Fig. 6
-<img src="plots/plots_png/XYZ_S1.png" width="900" height="400">
-<img src="plots/plots_png/XYZ_S2.png" width="900" height="400">
-<img src="plots/plots_png/XYZ_Cand14.png" width="900" height="400">
-
-[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Stars_GenerateAllPlots.ipynb)
-
-
----
-
-## Fig. 8
 <img src="plots/plots_png/fv3_Shards.png" width="1000" height="400">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_SpeedDistributions.ipynb)
 
 ---
 
-## Fig. 9
+## Fig. 6
 <img src="plots/plots_png/fv_Shards.png" width="450" height="400">
 
-[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/plot_Skymaps.ipynb)
+[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_SpeedDistributions.ipynb)
 
 ---
 
-## Fig. 10
-<img src="plots/plots_png/ShardsFlux.png" width="1000" height="400">
+## Fig. 7
+<img src="plots/plots_png/ShardsFlux.png" width="450" height="400">
+
+[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_Skymaps.ipynb)
+
+
+---
+
+## Fig. 8
+<img src="plots/plots_png/ShardsOnTheSky.png" width="1000" height="400">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_Skymaps.ipynb)
 
 ---
 
-## Fig. 11
+## Fig. 9
 <img src="plots/plots_png/Shards_axionspectrum.png" width="450" height="400">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_axionspectrum.ipynb)
 
 ---
 
-## Fig. 12
+## Fig. 10
 <img src="plots/plots_png/Shards_dRdE.png" width="450" height="400">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_NRdists.ipynb)
 
 ---
 
-## Fig. 13
+## Fig. 11
 <img src="plots/plots_png/Shards_annualmod_gravfocus_50GeV.png" width="450" height="400">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_DAMAShards.ipynb)
 
 ---
 
-## Fig. 14
+## Fig. 12
 <img src="plots/plots_png/Shards_annualmod_binned_50GeV.png" width="800" height="600">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_DAMAShards.ipynb)
 
 ---
 
-## Fig. 15
+## Fig. 13
 <img src="plots/plots_png/Shards_Directional.png" width="1000" height="600">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_DirectionalNR.ipynb)
 
 ---
 
-## Fig. 16
+## Fig. 14
 <img src="plots/plots_png/Shards_indiv_Directional.png" width="900" height="1000">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_DirectionalNR.ipynb)
@@ -160,6 +161,13 @@ Here is each figure in the paper in order
 ---
 
 # Bonus plots
+
+## Comparing one-dimensional speed distributions of Shards stars with the full halo sample
+<img src="plots/plots_png/fv3_halo_highE.png" width="1000" height="300">
+
+[Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_comparespeeddists_halo.ipynb)
+
+---
 
 ## Comparisons of stellar halo and Shards
 <p float="left">

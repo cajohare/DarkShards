@@ -66,13 +66,13 @@ Here is each figure in the paper in order
 
 ## Fig. 3
 <p float="left">
-  <img src="plots/stars/png/Vtriangle_S1.png" width="450" height="400">
-  <img src="plots/stars/png/Vtriangle_S2.png" width="450" height="400">
+  <img src="plots/stars/png/Vtriangle_S1.png" width="330" height="300">
+  <img src="plots/stars/png/Vtriangle_S2.png" width="330" height="300">
 </p>
 
 <p float="left">
-  <img src="plots/stars/png/Vtriangle_Rg5.png" width="450" height="400">
-  <img src="plots/stars/png/Vtriangle_Cand14.png" width="450" height="400">
+  <img src="plots/stars/png/Vtriangle_Rg5.png" width="330" height="300">
+  <img src="plots/stars/png/Vtriangle_Cand14.png" width="330" height="300">
 </p>
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_Vtriangle.ipynb)

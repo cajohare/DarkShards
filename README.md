@@ -6,7 +6,7 @@
 
 This repository contains the code, data and notebooks for (one hopes) reproducing the entirety of our recent paper "*Dark Shards*". There are also a few results and bits and pieces which did not make it in to final version but I've left in for potential future interest. In case you're interested in a particular plot see below for a list of various plots and the links to the specific notebook that makes it.
 
-Please contact me at ciaran.aj.ohare@gmail.com if you want to winge about why something doesn't work.
+Please contact me at ciaran.aj.ohare@gmail.com if you want to complain about why something doesn't work.
 
 
 <img src="movies/SDSS-Gaia-Halo.gif" width="600" height="400">
@@ -42,7 +42,7 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 
 # The Results
-Here is each figure in the paper in order
+Each plot can be recreated in a fairly self-contained fashion. Here is each figure in the paper in order and links to a notebook to see how it was made.
 
 
 ## Fig. 1

@@ -104,7 +104,7 @@ Here is each figure in the paper in order
 ---
 
 ## Fig. 7
-<img src="plots/plots_png/ShardsFlux.png" width="450" height="400">
+<img src="plots/plots_png/ShardsFlux.png" width="1000" height="400">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_Skymaps.ipynb)
 
@@ -112,7 +112,7 @@ Here is each figure in the paper in order
 ---
 
 ## Fig. 8
-<img src="plots/plots_png/ShardsOnTheSky.png" width="1000" height="400">
+<img src="plots/plots_png/ShardsOnTheSky.png" width="450" height="400">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_Skymaps.ipynb)
 
@@ -140,21 +140,21 @@ Here is each figure in the paper in order
 ---
 
 ## Fig. 12
-<img src="plots/plots_png/Shards_annualmod_binned_50GeV.png" width="800" height="600">
+<img src="plots/plots_png/Shards_annualmod_binned_50GeV.png" width="900" height="600">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_DAMAShards.ipynb)
 
 ---
 
 ## Fig. 13
-<img src="plots/plots_png/Shards_Directional.png" width="1000" height="600">
+<img src="plots/plots_png/Shards_Directional.png" width="1050" height="600">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_DirectionalNR.ipynb)
 
 ---
 
 ## Fig. 14
-<img src="plots/plots_png/Shards_indiv_Directional.png" width="900" height="1000">
+<img src="plots/plots_png/Shards_indiv_Directional.png" width="1000" height="1000">
 
 [Click here for the notebook](https://github.com/cajohare/DarkShards/blob/master/code/Plot_DirectionalNR.ipynb)
 

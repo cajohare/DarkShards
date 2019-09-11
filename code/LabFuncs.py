@@ -1,185 +1,49 @@
-#==============================================================================#
-# CIARAN O'HARE
-#
-# Currently it contains:
-#
-# BinEvents: For generating binned direction or non-directional recoil data
-# whilst applying the detector performance curves associated with "Expt"
-#
+#================================LabFuncs.py===================================#
+# Created by Ciaran O'Hare 2019
+
+# Description:
+# Contains an assortment of functions that are all related to the 'Lab' somehow
+# e.g. the nuclear form factor, lab velocity etc.
+
+
+# Contains:
+
+#####
 # FormFactorHelm: Only Form factor being used atm
-#
-# Lab velocity:
+#####
+
+##### Resolutions
+# Smear: Applies angular resolution to a recoil map as a function of direction
+# SmearE: Applies energy resolution to a recoil spectrum as a function of energy
+#####
+
+
+##### Lab velocity
 # LabVelocity: Full lab velocity in (N,W,Z) with Earth rotation
+# LabVelocitySimple: Simplified Lab velocity in galactic coordinates
 # JulianDay: JulianDay at dd-mm-yyyy hh:hh
-#
-# Solar direction:
+# EarthVelocity: Earth velocity to second order in eccentricity
+# EarthVector: Earth radius vector to second order in eccentricity
+# v_infinity: transforms velocity to the value outside the Sun's potential
+# v_infinity_alt: same as v_inficity but with a different velocity discretisation
+#####
+
+##### Solar direction:
 # EarthSunDistance: Distance between Earth and Sun as a function of time
 # SolarDirection: Direction of the sun at a given time
-#
-# Co-ordinate transformations
+#####
+
+##### Co-ordinate transformations
 # eqt2lab: Equatorial system to laboratory system
 # gal2eqt: Galactic system to equatorial system
 # gal2lab: Galactic system to lab system
+#####
 #==============================================================================#
 
 import numpy as np
 from numpy import cos, sin, pi, floor, exp, sqrt, size, zeros, shape, arccos
 from numpy import array, trapz
 import Params
-
-def BinEvents(Expt,dRfunc,*Args):
-    # Expt = Detector class
-    # dRfunc = differential recoil rate that is being binned
-    # Args = anything else needed by dRfunc
-
-    # Energy and time binning:
-    E_bins = Expt.Energies
-    t_bins = Expt.Times
-    Efficiency = Expt.Efficiency
-    ne = size(E_bins)
-    nt = size(t_bins)
-
-    # DIRECTIONAL LIMITS
-    if Expt.Directional:
-        q = Expt.Directions
-        sig_gamma = Expt.AngularResolution
-        HeadTail = Expt.HeadTailEfficiency
-
-        npix = size(q)/3
-        E_r = zeros(shape=(ne*nt*npix))
-        E = zeros(shape=(ne*nt*npix,3))
-        eff = zeros(shape=(ne*nt*npix))
-        t = zeros(shape=(ne*nt*npix))
-        eff_HT = zeros(shape=(ne*nt*npix))
-        ii = 0
-        for i in range(0,nt):
-            for j in range(0,ne):
-                for k in range(0,npix):
-                    E_r[ii] = E_bins[j]
-                    E[ii,:] = E_bins[j]*q[k,:]
-                    t[ii] = t_bins[i]
-                    eff[ii] = Efficiency[j]
-                    eff_HT[ii] = HeadTail[j]
-                    ii += 1
-
-        # Correct for Head-Tail
-        if HeadTail[0]>0.99:
-            dR = dRfunc(E,t,Expt,Args[0],Args[1])
-        else:
-            dR = (1.0-eff_HT)*dRfunc(E,t,Expt,Args[0],Args[1])\
-                    +eff_HT*dRfunc(-1.0*E,t,Expt,Args[0],Args[1])
-
-        dR = dR*4*pi/(1.0*npix*nt)
-        # Correct for Efficiency
-        if Efficiency[0]<0.99:
-            dR = dR*eff
-
-        # Correct for Angular resolution
-        if sig_gamma[0]>0.01:
-            i1 = 0
-            dR_smear = zeros(shape=shape(dR))
-            for i in range(0,nt):
-                for j in range(0,ne):
-                    i2 = i1 + npix - 1
-                    if sum(dR[i1:i2+1])>0.0:
-                        dR_smear[i1:i2+1] = Smear(q,dR[i1:i2+1],sig_gamma[j])
-                    i1 = i2+1
-            dR = dR_smear
-
-        # Bin events
-        i1 = 0
-        RD = zeros(shape=(ne-1)*nt*npix)
-        for i in range(0,nt):
-            for j in range(0,ne-1):
-                i2 = i1 + npix - 1
-                dR1 = dR[(t==t_bins[i])&(E_r==E_bins[j])]
-                dR2 = dR[(t==t_bins[i])&(E_r==E_bins[j+1])]
-                RD[i1:i2+1] = 0.5*(E_bins[j+1] - E_bins[j])*(dR1+dR2)
-                i1 = i2+1
-        # Last step: turn energy off if needed
-        if Expt.EnergyOff:
-            i1 = 0
-            RD_reduced = zeros(shape=(ne-1)*nt)
-            it1 = 0
-            for i in range(0,nt):
-                it2 = it1 + npix -1
-                for j in range(0,ne-1):
-                    i2 = i1 + npix - 1
-                    RD_reduced[it1:it2+1] += RD[i1:i2]
-                    i1 = i2 + 1
-                it1 = it2+1
-            RD = RD_reduced
-
-    # Non-directional limits
-    else:
-        E = zeros(shape=(ne*nt))
-        t = zeros(shape=(ne*nt))
-        eff = zeros(shape=(ne*nt))
-        ii = 0
-        for i in range(0,nt):
-            for j in range(0,ne):
-                E[ii] = E_bins[j]
-                t[ii] = t_bins[i]
-                eff[ii] = Efficiency[j]
-                ii += 1
-
-        dR = dRfunc(E,t,Expt,Args[0],Args[1])
-        dR = dR/(1.0*nt)
-        # Correct for Efficiency
-        if Efficiency[0]<0.99:
-            dR = dR*eff
-
-        # Bin events
-        i1 = 0
-        RD = zeros(shape=(ne-1)*nt)
-        for i in range(0,nt):
-            i2 = i1 + ne - 2
-            dR1 = dR[(t==t_bins[i])]
-            RD[i1:i2+1] = 0.5*(E_bins[1:] - E_bins[0:-1])*(dR1[1:]+dR1[0:-1])
-            i1 = i2 + 1
-
-    RD *= Expt.Exposure
-    return RD
-#------------------------------------------------------------------------------#
-
-
-
-
-
-
-#==============================Angular Res=====================================#
-def Smear(x,dR,sig_gamma):
-    npix = size(dR)
-    dR_smeared = zeros(shape=shape(dR))
-    for i in range(0,npix):
-        x0 = x[i,:]
-        gamma = x0[0]*x[:,0] + x0[1]*x[:,1] + x0[2]*x[:,2]
-        gamma[i] = 1.0
-        gamma = arccos(gamma)
-        dR_smeared[i] = sum(dR*exp(-gamma**2.0/(2*sig_gamma**2.0)))
-
-    dR_smeared = dR_smeared*sum(dR)/sum(dR_smeared)
-    return dR_smeared
-#------------------------------------------------------------------------------#
-
-
-#==============================Angular Res=====================================#
-def SmearE(E,dR,sig_E):
-    nE = size(dR)
-    dR_smeared = zeros(shape=shape(dR))
-    if size(sig_E)==1:
-        sig_E *= ones(shape=shape(dR))              
-    for i in range(0,nE):
-        Ediff = abs(E-E[i])
-        dR_smeared[i] = trapz(dR*exp(-Ediff**2.0/(2*sig_E**2.0)),E)
-
-    dR_smeared = dR_smeared*trapz(dR,E)/trapz(dR_smeared,E)
-    return dR_smeared
-#------------------------------------------------------------------------------#
-
-
-
-
 
 
 
@@ -197,6 +61,45 @@ def FormFactorHelm(E_r,A):
 
 
 
+#=======================Apply Angular Resolution===============================#
+def Smear(x,dR,sig_gamma):
+    # x = cartesian vectors
+    # dR = value of rate at directions in x
+    # sig_gamma = Gaussian width to smear dR by
+    npix = size(dR)
+    dR_smeared = zeros(shape=shape(dR))
+    for i in range(0,npix):
+        x0 = x[i,:]
+        gamma = x0[0]*x[:,0] + x0[1]*x[:,1] + x0[2]*x[:,2]
+        gamma[i] = 1.0
+        gamma = arccos(gamma)
+        dR_smeared[i] = sum(dR*exp(-gamma**2.0/(2*sig_gamma**2.0)))
+
+    # Make sure it's normalised to what it was before the smearing
+    dR_smeared = dR_smeared*sum(dR)/sum(dR_smeared)
+    return dR_smeared
+#------------------------------------------------------------------------------#
+
+#===========================Apply Energy Res===================================#
+def SmearE(E,dR,sig_E):
+    # E = energies
+    # dR = value of rate at energies in E
+    # sig_E = Gaussian width to smear dR by
+    nE = size(dR)
+    dR_smeared = zeros(shape=shape(dR))
+    if size(sig_E)==1:
+        sig_E *= ones(shape=shape(dR))
+    for i in range(0,nE):
+        Ediff = abs(E-E[i])
+        dR_smeared[i] = trapz(dR*exp(-Ediff**2.0/(2*sig_E**2.0)),E)
+
+    # Make sure it's normalised to what it was before the smearing
+    dR_smeared = dR_smeared*trapz(dR,E)/trapz(dR_smeared,E)
+    return dR_smeared
+#------------------------------------------------------------------------------#
+
+
+
 #==============================Lab Velocity====================================#
 # Peculiar velocity
 v_pec = array([11.1,12.2,7.3])
@@ -210,11 +113,10 @@ lat_ecl_gal = np.array([-5.5303,59.575,29.812])
 long_ecl_gal = np.array([266.141,-13.3485,179.3212])
 e1 = array([0.9941,0.1088,0.0042])
 e2 = array([-0.0504,0.4946,-0.8677])
-w_p = 2*pi/365
+w_p = 2*pi/365 # orbital freq.
 t1 = 79
-ve = 29.79
-vrot = 0.47
-
+ve = 29.79 # Earth's revolution
+vrot = 0.47 # Earth's rotation
 
 # Other constants
 AstronomicalUnit = 1.49597892e11 # Astronomical Unit
@@ -281,21 +183,27 @@ def JulianDay(month, day, year, hour): # Calculates time in JD for a given date
     return JulianDay
 
 def LabVelocitySimple(day,v_LSR=233.0):
+    # day measured from Jan1
     vsun = array([0.0,v_LSR,0.0])+v_pec
     v_lab = vsun + EarthVelocity(day)
     return v_lab
 
 def EarthVelocity(day):
+    # Second order in eccentricity
+    # day measured from Jan1
     lambda_p = 102.93*pi/180.0
     th = w_p*(day-t1)
     v_E = cos(th)*(e1-2*eccentricity*sin(lambda_p)*e2) \
           +sin(th)*(e2+2*eccentricity*sin(lambda_p)*e1) \
           -eccentricity*(cos(2*th)*(cos(lambda_p)*e1-sin(lambda_p)*e2) \
-          +sin(2*th)*(sin(lambda_p)*e1+cos(lambda_p)*e2))    
+          +sin(2*th)*(sin(lambda_p)*e1+cos(lambda_p)*e2))
     return vv_earthrev*v_E
-    
+
 
 def EarthVector(day):
+    # Earth's orbital radius vectors
+    # day measured from Jan1
+    # Second order in Earth's eccentricity
     a_earth = AstronomicalUnit/1.0e3
     tp = 3
     lamb_p = 102*pi/180
@@ -306,19 +214,22 @@ def EarthVector(day):
     return r_earth
 
 def v_infinity(v,costh,phi,day):
+    # v_infinity used for Gravitational focusing, this version uses a set of
+    # angles costh and phi
+    # day measured from Jan1
     x_earth = EarthVector(day)
     r_earth = sqrt(sum(x_earth**2.0))
-    x_earth /= r_earth
+    x_earth /= r_earth # unit vector towards Earth
     v_earth = EarthVelocity(day)
-    uu_esc = 2*bigG*Msun/r_earth
+    uu_esc = 2*bigG*Msun/r_earth # escape speed
 
     vx = v*sqrt(1.0-costh**2.0)*cos(phi)+v_earth[0]
     vy = v*sqrt(1.0-costh**2.0)*sin(phi)+v_earth[1]
     vz = v*costh+v_earth[2]
-    
+
     vv_inf = (vx**2.0+vy**2.0+vz**2.0)-uu_esc
     vv_inf = (vv_inf+abs(vv_inf))/2.0
-    
+
     vdotr = vx*x_earth[0]+vy*x_earth[1]+vz*x_earth[2]
 
     v_inf = sqrt(vv_inf)
@@ -327,26 +238,31 @@ def v_infinity(v,costh,phi,day):
     v_infx = (vv_inf*vx + 0.5*v_inf*uu_esc*x_earth[0] - v_inf*vx*vdotr)/denom
     v_infy = (vv_inf*vy + 0.5*v_inf*uu_esc*x_earth[1] - v_inf*vy*vdotr)/denom
     v_infz = (vv_inf*vz + 0.5*v_inf*uu_esc*x_earth[2] - v_inf*vz*vdotr)/denom
-    
-    
+
+
     return v_infx,v_infy,v_infz
 
 def v_infinity_alt(v3,day):
+    # v_infinity used for Gravitational focusing, this version uses a set of
+    # angles cartesian velocity vectors in v3 which defines a Healpix
+    # discretisation. Tends to be a bit faster and more accurate.
+    # day measured from Jan1
+
     x_earth = EarthVector(day)
     r_earth = sqrt(sum(x_earth**2.0))
-    x_earth /= r_earth
+    x_earth /= r_earth # unit vector towards Earth
     v_earth = EarthVelocity(day)
-    uu_esc = 2*bigG*Msun/r_earth
+    uu_esc = 2*bigG*Msun/r_earth # escape speed
 
-    vx = v3[:,0]+v_earth[0]
-    vy = v3[:,1]+v_earth[1]
-    vz = v3[:,2]+v_earth[2]
-    
+    vx = v3[:,0]+v_earth[0] # galactic x-component
+    vy = v3[:,1]+v_earth[1] # galactic y-component
+    vz = v3[:,2]+v_earth[2] # galactic z-component
+
     vv_inf = (vx**2.0+vy**2.0+vz**2.0)-uu_esc
     vv_inf = (vv_inf+abs(vv_inf))/2.0
     #vv_inf[vv_inf<0.0] = 0.0
-    
-    vdotr = vx*x_earth[0]+vy*x_earth[1]+vz*x_earth[2]
+
+    vdotr = vx*x_earth[0]+vy*x_earth[1]+vz*x_earth[2] # (v.x_earth)
 
     v_inf = sqrt(vv_inf)
 
@@ -354,37 +270,7 @@ def v_infinity_alt(v3,day):
     v_infx = (vv_inf*vx + 0.5*v_inf*uu_esc*x_earth[0] - v_inf*vx*vdotr)/denom
     v_infy = (vv_inf*vy + 0.5*v_inf*uu_esc*x_earth[1] - v_inf*vy*vdotr)/denom
     v_infz = (vv_inf*vz + 0.5*v_inf*uu_esc*x_earth[2] - v_inf*vz*vdotr)/denom
-    
-    
     return v_infx,v_infy,v_infz
-
-def GravFocusAngles(vv,costh,phi,day,sig=164.75,v_LSR=233.0,v_shift=array([0.0,0.0,0.0])):
-    v1 = vv*sqrt(1.0-costh**2.0)*cos(phi)
-    v2 = vv*sqrt(1.0-costh**2.0)*sin(phi)
-    v3 = vv*costh
-
-    v0 = sqrt(2.0)*sig
-    
-    vsun = array([0.0,v_LSR,0.0])+v_pec-v_shift
-    vearth = EarthVelocity(day)
-    rearth = EarthVector(day)
-    r = sqrt(sum(rearth**2.0))
-    xearth = rearth/r
-    
-    vsum1 = v1+vearth[0]
-    vsum2 = v2+vearth[1]
-    vsum3 = v3+vearth[2]
-    normvsum = sqrt(vsum1**2 + vsum2**2 + vsum3**2)
-    xsum1 = vsum1/normvsum
-    xsum2 = vsum2/normvsum
-    xsum3 = vsum3/normvsum
-    rx = 1.0-(xearth[0]*xsum1 + xearth[1]*xsum2 + xearth[2]*xsum3)
-    vrx = (v1+vearth[0]+vsun[0])*(xearth[0]-xsum1)\
-            +(v2+vearth[1]+vsun[1])*(xearth[1]-xsum2)\
-            +(v3+vearth[2]+vsun[2])*(xearth[2]-xsum3)
-
-    J = (-2*bigG*Msun/(r*v0**2.0*vv))*(vrx/rx)
-    return J
 
 #==========================Solar direction=====================================#
 def EarthSunDistance(JD): # Earth-sun distance at Julian Day (JD)
@@ -443,8 +329,6 @@ def EarthSunDistanceMod(JD):
 #------------------------------------------------------------------------------#
 
 
-
-
 #==============================================================================#
 #---------------------------Coordinate trans.----------------------------------#
 def eqt2lab(vp,t_lab,lat): # Equatorial (x_e,y_e,z_e) to Laboratory (N,W,Z)
@@ -467,3 +351,150 @@ def gal2lab(v,t_lab, lat): # Galactic (x_g,y_g,z_g) to Laboratory (N,W,Z)
     vp = gal2eqt(v)
     return eqt2lab(vp, t_lab, lat)
 #==============================================================================#
+
+
+
+
+# def BinEvents(Expt,dRfunc,*Args):
+#     # Expt = Detector class
+#     # dRfunc = differential recoil rate that is being binned
+#     # Args = anything else needed by dRfunc
+#
+#     # Energy and time binning:
+#     E_bins = Expt.Energies
+#     t_bins = Expt.Times
+#     Efficiency = Expt.Efficiency
+#     ne = size(E_bins)
+#     nt = size(t_bins)
+#
+#     # DIRECTIONAL LIMITS
+#     if Expt.Directional:
+#         q = Expt.Directions
+#         sig_gamma = Expt.AngularResolution
+#         HeadTail = Expt.HeadTailEfficiency
+#
+#         npix = size(q)/3
+#         E_r = zeros(shape=(ne*nt*npix))
+#         E = zeros(shape=(ne*nt*npix,3))
+#         eff = zeros(shape=(ne*nt*npix))
+#         t = zeros(shape=(ne*nt*npix))
+#         eff_HT = zeros(shape=(ne*nt*npix))
+#         ii = 0
+#         for i in range(0,nt):
+#             for j in range(0,ne):
+#                 for k in range(0,npix):
+#                     E_r[ii] = E_bins[j]
+#                     E[ii,:] = E_bins[j]*q[k,:]
+#                     t[ii] = t_bins[i]
+#                     eff[ii] = Efficiency[j]
+#                     eff_HT[ii] = HeadTail[j]
+#                     ii += 1
+#
+#         # Correct for Head-Tail
+#         if HeadTail[0]>0.99:
+#             dR = dRfunc(E,t,Expt,Args[0],Args[1])
+#         else:
+#             dR = (1.0-eff_HT)*dRfunc(E,t,Expt,Args[0],Args[1])\
+#                     +eff_HT*dRfunc(-1.0*E,t,Expt,Args[0],Args[1])
+#
+#         dR = dR*4*pi/(1.0*npix*nt)
+#         # Correct for Efficiency
+#         if Efficiency[0]<0.99:
+#             dR = dR*eff
+#
+#         # Correct for Angular resolution
+#         if sig_gamma[0]>0.01:
+#             i1 = 0
+#             dR_smear = zeros(shape=shape(dR))
+#             for i in range(0,nt):
+#                 for j in range(0,ne):
+#                     i2 = i1 + npix - 1
+#                     if sum(dR[i1:i2+1])>0.0:
+#                         dR_smear[i1:i2+1] = Smear(q,dR[i1:i2+1],sig_gamma[j])
+#                     i1 = i2+1
+#             dR = dR_smear
+#
+#         # Bin events
+#         i1 = 0
+#         RD = zeros(shape=(ne-1)*nt*npix)
+#         for i in range(0,nt):
+#             for j in range(0,ne-1):
+#                 i2 = i1 + npix - 1
+#                 dR1 = dR[(t==t_bins[i])&(E_r==E_bins[j])]
+#                 dR2 = dR[(t==t_bins[i])&(E_r==E_bins[j+1])]
+#                 RD[i1:i2+1] = 0.5*(E_bins[j+1] - E_bins[j])*(dR1+dR2)
+#                 i1 = i2+1
+#         # Last step: turn energy off if needed
+#         if Expt.EnergyOff:
+#             i1 = 0
+#             RD_reduced = zeros(shape=(ne-1)*nt)
+#             it1 = 0
+#             for i in range(0,nt):
+#                 it2 = it1 + npix -1
+#                 for j in range(0,ne-1):
+#                     i2 = i1 + npix - 1
+#                     RD_reduced[it1:it2+1] += RD[i1:i2]
+#                     i1 = i2 + 1
+#                 it1 = it2+1
+#             RD = RD_reduced
+#
+#     # Non-directional limits
+#     else:
+#         E = zeros(shape=(ne*nt))
+#         t = zeros(shape=(ne*nt))
+#         eff = zeros(shape=(ne*nt))
+#         ii = 0
+#         for i in range(0,nt):
+#             for j in range(0,ne):
+#                 E[ii] = E_bins[j]
+#                 t[ii] = t_bins[i]
+#                 eff[ii] = Efficiency[j]
+#                 ii += 1
+#
+#         dR = dRfunc(E,t,Expt,Args[0],Args[1])
+#         dR = dR/(1.0*nt)
+#         # Correct for Efficiency
+#         if Efficiency[0]<0.99:
+#             dR = dR*eff
+#
+#         # Bin events
+#         i1 = 0
+#         RD = zeros(shape=(ne-1)*nt)
+#         for i in range(0,nt):
+#             i2 = i1 + ne - 2
+#             dR1 = dR[(t==t_bins[i])]
+#             RD[i1:i2+1] = 0.5*(E_bins[1:] - E_bins[0:-1])*(dR1[1:]+dR1[0:-1])
+#             i1 = i2 + 1
+#
+#     RD *= Expt.Exposure
+#     return RD
+# #------------------------------------------------------------------------------#
+#
+#
+def GravFocusAngles(vv,costh,phi,day,sig=164.75,v_LSR=233.0,v_shift=array([0.0,0.0,0.0])):
+    v1 = vv*sqrt(1.0-costh**2.0)*cos(phi)
+    v2 = vv*sqrt(1.0-costh**2.0)*sin(phi)
+    v3 = vv*costh
+
+    v0 = sqrt(2.0)*sig
+
+    vsun = array([0.0,v_LSR,0.0])+v_pec-v_shift
+    vearth = EarthVelocity(day)
+    rearth = EarthVector(day)
+    r = sqrt(sum(rearth**2.0))
+    xearth = rearth/r
+
+    vsum1 = v1+vearth[0]
+    vsum2 = v2+vearth[1]
+    vsum3 = v3+vearth[2]
+    normvsum = sqrt(vsum1**2 + vsum2**2 + vsum3**2)
+    xsum1 = vsum1/normvsum
+    xsum2 = vsum2/normvsum
+    xsum3 = vsum3/normvsum
+    rx = 1.0-(xearth[0]*xsum1 + xearth[1]*xsum2 + xearth[2]*xsum3)
+    vrx = (v1+vearth[0]+vsun[0])*(xearth[0]-xsum1)\
+            +(v2+vearth[1]+vsun[1])*(xearth[1]-xsum2)\
+            +(v3+vearth[2]+vsun[2])*(xearth[2]-xsum3)
+
+    J = (-2*bigG*Msun/(r*v0**2.0*vv))*(vrx/rx)
+    return J

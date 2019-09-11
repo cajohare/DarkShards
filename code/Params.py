@@ -1,3 +1,14 @@
+#================================Params.py=====================================#
+# Created by Ciaran O'Hare 2019
+
+# Description:
+# This file just sets up some of the parameters that are used throughout the
+# project. and some classes that link things together.
+
+#==============================================================================#
+
+
+
 from __future__ import print_function
 from numpy import array, sqrt, pi, exp, interp, loadtxt, zeros, shape, ones
 from numpy import logspace, linspace, log10

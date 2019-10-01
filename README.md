@@ -1,7 +1,7 @@
 # DarkShards
 
 [![DOI](https://zenodo.org/badge/156694427.svg)](https://zenodo.org/badge/latestdoi/156694427)
-[![arXiv](https://img.shields.io/badge/arXiv-1909.04684.svg)](https://arxiv.org/abs/1909.04684)
+[![arXiv](https://img.shields.io/badge/astroph.GA-arXiv%3A1909.04684-B31B1B.svg)](https://arxiv.org/abs/1909.04684)
 [![MIT Licence](https://badges.frapsoft.com/os/mit/mit.svg?v=103)](https://opensource.org/licenses/mit-license.php)
 
 This repository contains the code, data and notebooks for (one hopes) reproducing the entirety of our recent paper "*Dark Shards*". There are also a few results and bits and pieces which did not make it in to final version but I've left in for potential future interest. In case you're interested in a particular plot see below for a list of various plots and the links to the specific notebook that makes it.

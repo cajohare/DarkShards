@@ -802,7 +802,7 @@ def VelocityTriangle(Cand,vmin=-595.0,vmax=595.0,nfine=500,nbins_1D = 50,\
 
 def XY_XZ(Cand,z_th=6.0,xmin = 0.0,xmax = 16.0,StarsColour='Purple',\
           BulgeColour = 'Crimson',DiskColour = 'Blue',\
-          cmap = cm.Greens,Grid = True,Footprint=True,T_Myr = 100.0,OrbitsOn=True):
+          cmap = cm.Greens,Grid = True,Footprint=True,T_Myr = 100.0,OrbitsOn=True,SaveFigure=True):
 
     # Set plot rc params
     plt.rcParams['axes.linewidth'] = 2.5
@@ -995,12 +995,13 @@ def XY_XZ(Cand,z_th=6.0,xmin = 0.0,xmax = 16.0,StarsColour='Purple',\
         # Stellar orbits
         col_orb = 'ForestGreen'
         for i in range(0,nstars):
-            R = Cand.GalR[i]
+           
+            R = sqrt(Cand.GalRecX[i]**2.0 + Cand.GalRecY[i]**2.0)
             vR = Cand.GalRVel[i]
             vT = Cand.GalTVel[i]
-            z = Cand.Galz[i]
+            z = Cand.GalRecZ[i]
             vz = Cand.GalzVel[i]
-            phi = Cand.Galphi[i]*180/pi
+            phi = ((arctan2(Cand.GalRecY[i],Cand.GalRecX[i])*180/pi)+360) % 360
 
             o1 = Orbit(vxvv=[R*kpc,vR*kms,vT*kms,z*kpc,vz*kms,phi*deg]).flip()
             o1.integrate(ts,MWPotential2014)
@@ -1020,8 +1021,10 @@ def XY_XZ(Cand,z_th=6.0,xmin = 0.0,xmax = 16.0,StarsColour='Purple',\
     #sigz = std(Cand.GalzVel)
     #beta = 1.0-(sigz**2.0+sigphi**2.0)/(2*sigr**2.0)
     #plt.gcf().text(0.79, 0.16, r'$\beta$ = '+r'{:.2f}'.format(beta), fontsize=30)
-    fig.savefig('../plots/stars/XYZ_'+name+'.pdf',bbox_inches='tight')
-    fig.savefig('../plots/stars/png/XYZ_'+name+'.png',bbox_inches='tight')
+    if SaveFigure:
+        fig.savefig('../plots/stars/XYZ_'+name+'.pdf',bbox_inches='tight')
+        fig.savefig('../plots/stars/png/XYZ_'+name+'.png',bbox_inches='tight')
+
     return fig
 
 
@@ -1084,12 +1087,12 @@ def Orbits(Cand,xlim=16.0,ylim=16.0,zlim=16.0,T_Myr=10.0):
     ts = linspace(0.0,T_Myr*units.Myr,500)
 
     for i in range(0,nstars):
-        R = Cand.GalR[i]
+        R = sqrt(Cand.GalRecX[i]**2.0 + Cand.GalRecY[i]**2.0)
         vR = Cand.GalRVel[i]
         vT = Cand.GalTVel[i]
-        z = Cand.Galz[i]
+        z = Cand.GalRecZ[i]
         vz = Cand.GalzVel[i]
-        phi = Cand.Galphi[i]*180/pi
+        phi = ((arctan2(Cand.GalRecY[i],Cand.GalRecX[i])*180/pi)+360) % 360
         # -t
         o = Orbit(vxvv=[R*kpc,vR*kms,vT*kms,z*kpc,vz*kms,phi*deg]).flip()
         o.integrate(ts,MWPotential2014)

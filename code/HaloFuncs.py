@@ -42,7 +42,7 @@ for i in range(0,npix):
     x_pix[i,:] = hp.pix2vec(nside, i)
 
 # Square discretisation of a sphere (less accurate for these calculations)
-n = 51
+n = 201
 dth = 2.0/(n-1.0)
 dph = 2*pi/(2*n*1.0)
 cvals = arange(-1.0,1.0,dth)
